@@ -1,0 +1,24 @@
+package edu.berkeley.lolfs.server;
+
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+
+import org.apache.log4j.Logger;
+
+import edu.berkeley.lolfs.util.Logging;
+import edu.berkeley.lolfs.util.log.Log4JLogger;
+
+public class Server {
+	public final Logging log = new Log4JLogger();
+	private final Logger logger = log.getLogger(Server.class);
+	
+	public static void main(String[] args) {
+		new Server().run();
+	}
+	
+	public void run() {
+		logger.info("Server starting up...");
+		logger.info("Server shutting down...");
+		logger.info("Server exiting!");
+	}
+}
