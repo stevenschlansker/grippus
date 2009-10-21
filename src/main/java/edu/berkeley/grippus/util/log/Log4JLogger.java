@@ -1,8 +1,8 @@
-package edu.berkeley.lolfs.util.log;
+package edu.berkeley.grippus.util.log;
 
 import org.apache.log4j.Logger;
 
-import edu.berkeley.lolfs.util.Logging;
+import edu.berkeley.grippus.util.Logging;
 
 public class Log4JLogger implements Logging {
 

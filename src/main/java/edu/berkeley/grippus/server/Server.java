@@ -1,12 +1,12 @@
-package edu.berkeley.lolfs.server;
+package edu.berkeley.grippus.server;
 
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.apache.log4j.Logger;
 
-import edu.berkeley.lolfs.util.Logging;
-import edu.berkeley.lolfs.util.log.Log4JLogger;
+import edu.berkeley.grippus.util.Logging;
+import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Server {
 	public final Logging log = new Log4JLogger();

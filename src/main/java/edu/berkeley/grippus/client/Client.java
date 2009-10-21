@@ -1,9 +1,9 @@
-package edu.berkeley.lolfs.client;
+package edu.berkeley.grippus.client;
 
 import org.apache.log4j.Logger;
 
-import edu.berkeley.lolfs.util.Logging;
-import edu.berkeley.lolfs.util.log.Log4JLogger;
+import edu.berkeley.grippus.util.Logging;
+import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Client {
 	public final Logging log = new Log4JLogger();

@@ -1,4 +1,4 @@
-package edu.berkeley.lolfs.util;
+package edu.berkeley.grippus.util;
 
 import org.apache.log4j.Logger;
 
