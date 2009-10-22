@@ -1,6 +1,9 @@
 package edu.berkeley.grippus.server;
 
 import java.io.File;
+import java.io.IOException;
+
+import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
@@ -24,9 +27,10 @@ public class Node {
 		if (!serverRoot.exists()) serverRoot.mkdir();
 		if (!serverRoot.isDirectory())
 			throw new RuntimeException("Server root " + serverRoot + " is not a directory!");
-		BackingStore bs = new BackingStore(new File(serverRoot, "store"));
-		Configuration conf = new Configuration(new File(serverRoot, "config"));
-		NodeCluster cls = new NodeCluster(conf,bs);
+		Configuration conf = new Configuration(this, new File(serverRoot, "config"));
+		maybeInitializeConfig(conf);
+		BackingStore bs = new BackingStore(this, conf, new File(serverRoot, "store"));
+		NodeCluster cls = new NodeCluster(this, conf, bs);
 		
 		running = true;
 		cls.connect();
@@ -35,5 +39,22 @@ public class Node {
 		logger.info("Server shutting down...");
 		cls.disconnect();
 		logger.info("Server exiting!");
+	}
+
+	private void maybeInitializeConfig(Configuration conf) {
+		ConsoleReader inp;
+		try {
+			inp = new ConsoleReader();
+			maybeInitialize(conf, inp, "node.name", "Node name: ");
+			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
+		} catch (IOException e) {
+			logger.error("Could not read from console; cannot configure, dying");
+			throw new RuntimeException("I/O problem", e);
+		}
+	}
+	
+	private void maybeInitialize(Configuration conf, ConsoleReader inp, String key, String prompt) throws IOException {
+		if (conf.get(key) == null)
+			conf.set(key, inp.readLine(prompt));
 	}
 }

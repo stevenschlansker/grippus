@@ -2,7 +2,7 @@ package edu.berkeley.grippus.server;
 
 public class NodeCluster {
 
-	public NodeCluster(Configuration conf, BackingStore bs) {
+	public NodeCluster(Node node, Configuration conf, BackingStore bs) {
 		// TODO Auto-generated constructor stub
 	}
 
