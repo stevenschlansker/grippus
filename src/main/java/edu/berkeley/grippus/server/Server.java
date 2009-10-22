@@ -1,8 +1,5 @@
 package edu.berkeley.grippus.server;
 
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
-
 import org.apache.log4j.Logger;
 
 import edu.berkeley.grippus.util.Logging;
