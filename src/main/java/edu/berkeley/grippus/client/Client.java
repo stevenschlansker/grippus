@@ -1,5 +1,9 @@
 package edu.berkeley.grippus.client;
 
+import java.io.IOException;
+
+import jline.ConsoleReader;
+
 import org.apache.log4j.Logger;
 
 import edu.berkeley.grippus.util.Logging;
@@ -13,6 +17,11 @@ public class Client {
 	}
 	
 	private void run() {
-		
+		try {
+			ConsoleReader console = new ConsoleReader();
+			console.readLine("> ");
+		} catch (IOException e) {
+			logger.error("I/O error from terminal");
+		}
 	}
 }
