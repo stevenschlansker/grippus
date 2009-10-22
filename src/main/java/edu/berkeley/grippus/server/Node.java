@@ -2,6 +2,8 @@ package edu.berkeley.grippus.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 
 import jline.ConsoleReader;
 
@@ -17,10 +19,24 @@ public class Node {
 	private volatile boolean running = false;
 	private final String name;
 	private final File serverRoot;
+	private final Configuration conf;
+	private final BackingStore bs;
+	private final NodeCluster cls;
+	private final NodeManagementServer nms;
 	
 	public Node(String name) {
 		this.name = name;
 		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
+		if (!serverRoot.exists()) serverRoot.mkdirs();
+		if (!serverRoot.isDirectory())
+			throw new RuntimeException("Server root " + serverRoot + " is not a directory!");
+		conf = new Configuration(this, new File(serverRoot, "config"));
+		conf.set("node.name", name);
+		maybeInitializeConfig(conf);
+
+		bs = new BackingStore(this, new File(serverRoot, "store"));
+		cls = new NodeCluster(this);
+		nms = new NodeManagementServer();
 	}
 
 	public static void main(String[] args) {
@@ -34,30 +50,32 @@ public class Node {
 	
 	public void run() {
 		logger.info("Server starting up...");
-		if (!serverRoot.exists()) serverRoot.mkdirs();
-		if (!serverRoot.isDirectory())
-			throw new RuntimeException("Server root " + serverRoot + " is not a directory!");
-		Configuration conf = new Configuration(this, new File(serverRoot, "config"));
-		conf.set("node.name", name);
-		maybeInitializeConfig(conf);
-		BackingStore bs = new BackingStore(this, conf, new File(serverRoot, "store"));
-		NodeCluster cls = new NodeCluster(this, conf, bs);
 		
 		running = true;
 		cls.connect();
-		cls.run();
+
+		while(running) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {}
+		}
 
 		logger.info("Server shutting down...");
 		cls.disconnect();
 		logger.info("Server exiting!");
 	}
 
+	public Configuration getConf() {
+		return conf;
+	}
+	
 	private void maybeInitializeConfig(Configuration conf) {
 		ConsoleReader inp;
 		try {
 			inp = new ConsoleReader();
 			maybeInitialize(conf, inp, "node.name", "Node name: ");
 			maybeInitialize(conf, inp, "node.port", "Node port [11110]: ");
+			maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
 			maybeInitialize(conf, inp, "cluster.salt", "Cluster salt: ");
 			maybeInitialize(conf, inp, "cluster.password", "Cluster password: ");
@@ -70,5 +88,26 @@ public class Node {
 	private void maybeInitialize(Configuration conf, ConsoleReader inp, String key, String prompt) throws IOException {
 		if (conf.getString(key) == null)
 			conf.set(key, inp.readLine(prompt));
+	}
+
+	public BackingStore getBackingStore() {
+		return bs;
+	}
+
+	private class NodeManagementServer implements Runnable {
+		ServerSocket ss;
+		public NodeManagementServer() {
+			try {
+				ss = new ServerSocket(Integer.parseInt(conf.getString("node.mgmtport", "11111")), 0, InetAddress.getLocalHost());
+				new Thread(this).start();
+			} catch (IOException e) {
+				logger.error("I/O error; management interface shut down", e);
+			}
+		}
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 }

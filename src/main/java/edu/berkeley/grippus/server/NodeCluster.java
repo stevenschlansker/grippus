@@ -1,11 +1,13 @@
 package edu.berkeley.grippus.server;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.Interfaces;
 import com.hazelcast.config.Join;
 import com.hazelcast.config.JoinMembers;
 import com.hazelcast.config.MulticastConfig;
@@ -26,10 +28,10 @@ public class NodeCluster implements InstanceListener {
 	private final Logger logger;
 	private HazelcastInstance instance;
 	
-	public NodeCluster(Node node, Configuration conf, BackingStore bs) {
+	public NodeCluster(Node node) {
 		this.node = node;
-		this.conf = conf;
-		this.bs = bs;
+		this.conf = node.getConf();
+		this.bs = node.getBackingStore();
 		logger = node.log.getLogger(Node.class);
 	}
 
@@ -45,6 +47,10 @@ public class NodeCluster implements InstanceListener {
 		sec.setSalt(conf.getString("cluster.salt"));
 		sec.setPassword(conf.getString("cluster.password"));
 		nc.setSymmetricEncryptionConfig(sec);
+		Interfaces i = new Interfaces();
+		i.setLsInterfaces(Arrays.asList("*.*.*.*"));
+		i.setEnabled(true);
+		nc.setInterfaces(i);
 		mc.setEnabled(false);
 		j.setMulticastConfig(mc);
 		for (Address a : conf.get("cluster.addresses", new HashSet<Address>()))
@@ -57,14 +63,6 @@ public class NodeCluster implements InstanceListener {
 		c.setNetworkConfig(nc);
 		instance = Hazelcast.newHazelcastInstance(c);
 		instance.addInstanceListener(this);
-	}
-
-	public void run() {
-		while(true) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {}
-		}
 	}
 
 	public void disconnect() {

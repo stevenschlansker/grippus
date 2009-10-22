@@ -51,7 +51,7 @@ public class Configuration {
 
 	public String getString(String key, String dfl) {
 		String result = getString(key);
-		if (result == null)
+		if (result == null || result.equals(""))
 			return dfl;
 		return result;
 	}

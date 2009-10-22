@@ -9,12 +9,12 @@ import edu.berkeley.grippus.util.FileSize;
 public class BackingStore {
 	private final long maxStoreSize;
 	private final Logger logger;
-	public BackingStore(Node node, Configuration conf, File root) {
+	public BackingStore(Node node, File root) {
 		logger = node.log.getLogger(BackingStore.class);
 		if (!root.exists()) root.mkdir();
 		if (!root.isDirectory())
 			throw new RuntimeException("Store root " + root + " is not a directory :(");
-		maxStoreSize = FileSize.parseSize(conf.getString("store.maxsize"));
+		maxStoreSize = FileSize.parseSize(node.getConf().getString("store.maxsize"));
 		logger.debug("Using up to " + maxStoreSize + " bytes for storage...");
 	}
 }
