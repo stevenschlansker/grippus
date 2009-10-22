@@ -14,7 +14,7 @@ public class BackingStore {
 		if (!root.exists()) root.mkdir();
 		if (!root.isDirectory())
 			throw new RuntimeException("Store root " + root + " is not a directory :(");
-		maxStoreSize = FileSize.parseSize(conf.get("store.maxsize"));
+		maxStoreSize = FileSize.parseSize(conf.getString("store.maxsize"));
 		logger.debug("Using up to " + maxStoreSize + " bytes for storage...");
 	}
 }

@@ -47,6 +47,8 @@ public class Node {
 			inp = new ConsoleReader();
 			maybeInitialize(conf, inp, "node.name", "Node name: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
+			maybeInitialize(conf, inp, "cluster.salt", "Cluster salt: ");
+			maybeInitialize(conf, inp, "cluster.password", "Cluster password: ");
 		} catch (IOException e) {
 			logger.error("Could not read from console; cannot configure, dying");
 			throw new RuntimeException("I/O problem", e);
@@ -54,7 +56,7 @@ public class Node {
 	}
 	
 	private void maybeInitialize(Configuration conf, ConsoleReader inp, String key, String prompt) throws IOException {
-		if (conf.get(key) == null)
+		if (conf.getString(key) == null)
 			conf.set(key, inp.readLine(prompt));
 	}
 }
