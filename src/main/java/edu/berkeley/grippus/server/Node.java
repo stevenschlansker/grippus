@@ -15,19 +15,30 @@ public class Node {
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Node.class);
 	private volatile boolean running = false;
-	File serverRoot = new File(System.getProperty("user.home"),".grippus");
+	private final String name;
+	private final File serverRoot;
 	
+	public Node(String name) {
+		this.name = name;
+		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
+	}
+
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		new Node().run();
+		if (args.length < 1 || args[0] == null) {
+			System.err.println("You must supply a node instance name on the command line");
+			System.exit(1);
+		}
+		new Node(args[0]).run();
 	}
 	
 	public void run() {
 		logger.info("Server starting up...");
-		if (!serverRoot.exists()) serverRoot.mkdir();
+		if (!serverRoot.exists()) serverRoot.mkdirs();
 		if (!serverRoot.isDirectory())
 			throw new RuntimeException("Server root " + serverRoot + " is not a directory!");
 		Configuration conf = new Configuration(this, new File(serverRoot, "config"));
+		conf.set("node.name", name);
 		maybeInitializeConfig(conf);
 		BackingStore bs = new BackingStore(this, conf, new File(serverRoot, "store"));
 		NodeCluster cls = new NodeCluster(this, conf, bs);
@@ -46,6 +57,7 @@ public class Node {
 		try {
 			inp = new ConsoleReader();
 			maybeInitialize(conf, inp, "node.name", "Node name: ");
+			maybeInitialize(conf, inp, "node.port", "Node port [11110]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
 			maybeInitialize(conf, inp, "cluster.salt", "Cluster salt: ");
 			maybeInitialize(conf, inp, "cluster.password", "Cluster password: ");
