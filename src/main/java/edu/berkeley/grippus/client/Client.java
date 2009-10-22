@@ -17,9 +17,14 @@ public class Client {
 	}
 	
 	private void run() {
+		boolean running = true;
 		try {
 			ConsoleReader console = new ConsoleReader();
-			console.readLine("> ");
+			while(running) {
+				String line = console.readLine("> ");
+				if (line.isEmpty()) running = false;
+				String[] cmd = line.split("\\s+");
+			}
 		} catch (IOException e) {
 			logger.error("I/O error from terminal");
 		}
