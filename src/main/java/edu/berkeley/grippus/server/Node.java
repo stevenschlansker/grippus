@@ -1,7 +1,5 @@
 package edu.berkeley.grippus.server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,6 +13,8 @@ import jline.ConsoleReader;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
+import edu.berkeley.grippus.client.Command;
+import edu.berkeley.grippus.client.command.Quit;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -121,13 +121,22 @@ public class Node {
 						return;
 					}
 					logger.info("Management connect from "+sock);
-					while(true) {
-						return;
+					while(running) {
+						Object incoming = in.readObject();
+						Command cmd = (Command) incoming;
+						if (cmd instanceof Quit)
+							break;
+						out.writeObject(cmd.execute(Node.this));
 					}
+					in.close();
+					out.close();
+					sock.close();
 				} catch (IOException e) {
 					logger.warn("I/O exception from management thread", e);
 				} catch (ClassNotFoundException e) {
 					logger.warn("Could not deserialize object", e);
+				} catch (ClassCastException e) {
+					logger.warn("Client did something bad!", e);
 				}
 			}
 		}
@@ -135,7 +144,9 @@ public class Node {
 		public NodeManagementServer() {
 			try {
 				ss = new ServerSocket(Integer.parseInt(conf.getString("node.mgmtport", "11111")), 0, InetAddress.getByName("localhost"));
-				new Thread(this).start();
+				Thread nms = new Thread(this);
+				nms.setDaemon(true);
+				nms.start();
 			} catch (IOException e) {
 				logger.error("I/O error; management interface shut down", e);
 			}
@@ -151,5 +162,13 @@ public class Node {
 				}
 			}
 		}
+	}
+
+	public void terminate() {
+		running = false;
+	}
+
+	public synchronized boolean addPeer(String string, int port) {
+		conf.get(key, dfl)
 	}
 }

@@ -1,8 +1,6 @@
 package edu.berkeley.grippus.server;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -17,7 +15,6 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.InstanceEvent;
 import com.hazelcast.core.InstanceListener;
-import com.hazelcast.core.Member;
 import com.hazelcast.nio.Address;
 
 public class NodeCluster implements InstanceListener {

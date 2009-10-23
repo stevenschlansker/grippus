@@ -7,9 +7,12 @@ import java.net.Socket;
 
 import jline.ConsoleReader;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
+import edu.berkeley.grippus.client.command.Quit;
+import edu.berkeley.grippus.client.command.Version;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -38,7 +41,9 @@ public class Client {
 				String[] cmd = line.split("\\s+");
 				Class<?> c;
 				try {
-					c = Class.forName(Client.class.getPackage()+".command."+cmd[0]);
+					c = Class.forName(Client.class.getPackage().getName()+".command."+StringUtils.capitalize(cmd[0]));
+					if (c == null)
+						throw new ClassNotFoundException();
 				} catch (ClassNotFoundException e) {
 					logger.error("No such command "+cmd[0], e);
 					continue;
@@ -56,7 +61,9 @@ public class Client {
 					logger.error("Could not instantiate command instance", e);
 					continue;
 				}
+				command.setArgs(cmd);
 				out.writeObject(command);
+				if (command instanceof Quit) break;
 				try {
 					System.out.println(in.readObject());
 				} catch (ClassNotFoundException e) {
