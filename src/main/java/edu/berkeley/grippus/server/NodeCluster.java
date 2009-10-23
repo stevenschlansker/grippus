@@ -48,8 +48,7 @@ public class NodeCluster implements InstanceListener {
 		sec.setPassword(conf.getString("cluster.password"));
 		nc.setSymmetricEncryptionConfig(sec);
 		Interfaces i = new Interfaces();
-		i.setLsInterfaces(Arrays.asList("*.*.*.*"));
-		i.setEnabled(true);
+		i.setEnabled(false);
 		nc.setInterfaces(i);
 		mc.setEnabled(false);
 		j.setMulticastConfig(mc);

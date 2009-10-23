@@ -1,9 +1,14 @@
 package edu.berkeley.grippus.server;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 import jline.ConsoleReader;
 
@@ -96,9 +101,40 @@ public class Node {
 
 	private class NodeManagementServer implements Runnable {
 		ServerSocket ss;
+		
+		private class NodeManagementServerThread implements Runnable {
+			private Socket sock;
+			public NodeManagementServerThread(Socket s) {
+				sock = s;
+			}
+			@Override
+			public void run() {
+				try {
+					ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+					ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
+					String pw = in.readObject().toString();
+					if (!pw.equals(conf.getString("cluster.password"))) {
+						logger.warn("Bad password from "+sock);
+						in.close();
+						out.close();
+						sock.close();
+						return;
+					}
+					logger.info("Management connect from "+sock);
+					while(true) {
+						return;
+					}
+				} catch (IOException e) {
+					logger.warn("I/O exception from management thread", e);
+				} catch (ClassNotFoundException e) {
+					logger.warn("Could not deserialize object", e);
+				}
+			}
+		}
+		
 		public NodeManagementServer() {
 			try {
-				ss = new ServerSocket(Integer.parseInt(conf.getString("node.mgmtport", "11111")), 0, InetAddress.getLocalHost());
+				ss = new ServerSocket(Integer.parseInt(conf.getString("node.mgmtport", "11111")), 0, InetAddress.getByName("localhost"));
 				new Thread(this).start();
 			} catch (IOException e) {
 				logger.error("I/O error; management interface shut down", e);
@@ -106,8 +142,14 @@ public class Node {
 		}
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			
+			while(true) {
+				try {
+					Socket s = ss.accept();
+					new Thread(new NodeManagementServerThread(s)).start();
+				} catch (IOException e) {
+					logger.warn("I/O error while talking to client");
+				}
+			}
 		}
 	}
 }
