@@ -12,6 +12,7 @@ import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.server.Server;
 
 import edu.berkeley.grippus.client.Command;
 import edu.berkeley.grippus.client.command.Quit;
@@ -27,6 +28,7 @@ public class Node {
 	private final Configuration conf;
 	private final BackingStore bs;
 	private final NodeManagementServer nms;
+	private final Server jetty;
 	
 	public Node(String name) {
 		this.name = name;
@@ -40,6 +42,7 @@ public class Node {
 
 		bs = new BackingStore(this, new File(serverRoot, "store"));
 		nms = new NodeManagementServer();
+		jetty = new Server(Integer.parseInt(conf.getString("node.port", "11110")));
 	}
 
 	public static void main(String[] args) {
@@ -54,12 +57,24 @@ public class Node {
 	public void run() {
 		logger.info("Server starting up...");
 		
+		try {
+			jetty.start();
+		} catch(Exception e) {
+			logger.error("Could not start jetty", e);
+		}
+		
 		running = true;
 
 		while(running) {
 			try {
 				Thread.sleep(1000);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) { /* don't bother */ }
+		}
+		
+		try {
+			jetty.stop();
+		} catch(Exception e) {
+			logger.error("Could not stop jetty", e);
 		}
 
 		logger.info("Server shutting down...");
@@ -78,7 +93,7 @@ public class Node {
 			maybeInitialize(conf, inp, "node.port", "Node port [11110]: ");
 			maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
-			maybeInitialize(conf, inp, "cluster.salt", "Cluster salt: ");
+			//maybeInitialize(conf, inp, "cluster.salt", "Cluster salt: ");
 			maybeInitialize(conf, inp, "cluster.password", "Cluster password: ");
 		} catch (IOException e) {
 			logger.error("Could not read from console; cannot configure, dying");
