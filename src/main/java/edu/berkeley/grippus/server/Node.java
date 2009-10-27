@@ -57,12 +57,7 @@ public class Node {
 	public void run() {
 		logger.info("Server starting up...");
 		
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath("/");
-		context.addServlet(NodeRPCImpl.class, "/node/*");
-		NodeManagementRPCImpl.managedNode = this;
-		context.addServlet(NodeManagementRPCImpl.class, "/mgmt/*");
-		jetty.setHandler(context);
+		configureJetty();
 		
 		try {
 			jetty.start();
@@ -86,6 +81,37 @@ public class Node {
 
 		logger.info("Server shutting down...");
 		logger.info("Server exiting!");
+	}
+
+	private void configureJetty() {
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		Constraint constraint = new Constraint();
+		constraint.setName(Constraint.__BASIC_AUTH);
+		constraint.setRoles(new String[] {"grippus"});
+		constraint.setAuthenticate(true);
+		ConstraintMapping cm = new ConstraintMapping();
+		cm.setConstraint(constraint);
+		cm.setPathSpec("/*");
+		ConstraintSecurityHandler sh = new ConstraintSecurityHandler();
+		sh.setConstraintMappings(new ConstraintMapping[] {cm});
+		File tempFile;
+		try {
+			tempFile = File.createTempFile("realm", "passwd");
+			tempFile.deleteOnExit();
+			FileWriter w = new FileWriter(tempFile);
+			w.write("grippus: " + conf.getString("cluster.password"));
+			w.close();
+		} catch (IOException e) {
+			logger.error("IO exception while setting up authentication: ", e);
+			throw new RuntimeException("initialization failed");
+		}
+		sh.setLoginService(new HashLoginService("Grippus", tempFile.getAbsolutePath()));
+		context.setSecurityHandler(sh);
+		context.setContextPath("/");
+		context.addServlet(NodeRPCImpl.class, "/node/*");
+		NodeManagementRPCImpl.managedNode = this;
+		context.addServlet(NodeManagementRPCImpl.class, "/mgmt/*");
+		jetty.setHandler(context);
 	}
 
 	public Configuration getConf() {

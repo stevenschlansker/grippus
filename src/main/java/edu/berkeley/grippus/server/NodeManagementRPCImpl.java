@@ -9,7 +9,13 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public NodeManagementRPCImpl() { /* do nothing */ }
 
 	@Override
-	public String version() {
+	public String version(String cmd) {
 		return "0.1";
+	}
+
+	@Override
+	public String terminate(String cmd) {
+		managedNode.terminate();
+		return "Success";
 	}
 }
