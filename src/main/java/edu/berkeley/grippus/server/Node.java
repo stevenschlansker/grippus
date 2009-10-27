@@ -26,7 +26,6 @@ public class Node {
 	private final File serverRoot;
 	private final Configuration conf;
 	private final BackingStore bs;
-	private final NodeCluster cls;
 	private final NodeManagementServer nms;
 	
 	public Node(String name) {
@@ -40,7 +39,6 @@ public class Node {
 		maybeInitializeConfig(conf);
 
 		bs = new BackingStore(this, new File(serverRoot, "store"));
-		cls = new NodeCluster(this);
 		nms = new NodeManagementServer();
 	}
 
@@ -57,7 +55,6 @@ public class Node {
 		logger.info("Server starting up...");
 		
 		running = true;
-		cls.connect();
 
 		while(running) {
 			try {
@@ -66,7 +63,6 @@ public class Node {
 		}
 
 		logger.info("Server shutting down...");
-		cls.disconnect();
 		logger.info("Server exiting!");
 	}
 
@@ -169,6 +165,6 @@ public class Node {
 	}
 
 	public synchronized boolean addPeer(String string, int port) {
-		conf.get(key, dfl)
+		return false;
 	}
 }

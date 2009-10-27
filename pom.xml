@@ -7,6 +7,12 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>grippus</name>
   <url>http://maven.apache.org</url>
+  <repositories>
+  <repository>
+  <id>jetty-repo</id>
+  <name>Jetty Repo</name>
+  <url>http://oss.sonatype.org/content/groups/jetty/</url>
+</repository></repositories>
   <build>
   	<plugins>
   	<plugin>
@@ -49,9 +55,9 @@
     	<version>0.9.94</version>
     </dependency>
     <dependency>
-    	<groupId>com.hazelcast</groupId>
-    	<artifactId>hazelcast</artifactId>
-    	<version>1.7.1</version>
+    	<groupId>org.eclipse.jetty</groupId>
+    	<artifactId>jetty-server</artifactId>
+    	<version>7.0.0.M4</version>
     </dependency>
     <dependency>
     	<groupId>commons-lang</groupId>
