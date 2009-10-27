@@ -1,12 +1,18 @@
 package edu.berkeley.grippus.server;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.http.security.Constraint;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.MappedLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -14,6 +20,7 @@ import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Node {
+
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Node.class);
 	private volatile boolean running = false;

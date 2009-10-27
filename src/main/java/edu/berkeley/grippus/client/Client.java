@@ -1,13 +1,11 @@
 package edu.berkeley.grippus.client;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import jline.ConsoleReader;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
@@ -25,7 +23,6 @@ public class Client {
 	}
 	
 	private void run() {
-		boolean running = true;
 		BasicConfigurator.configure();
 		
 		try {
