@@ -12,7 +12,6 @@ import org.eclipse.jetty.http.security.Constraint;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
-import org.eclipse.jetty.security.MappedLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -99,13 +98,13 @@ public class Node {
 			tempFile = File.createTempFile("realm", "passwd");
 			tempFile.deleteOnExit();
 			FileWriter w = new FileWriter(tempFile);
-			w.write("grippus: " + conf.getString("cluster.password"));
+			w.write("grippus: " + conf.getString("cluster.password")+", grippus");
 			w.close();
 		} catch (IOException e) {
 			logger.error("IO exception while setting up authentication: ", e);
 			throw new RuntimeException("initialization failed");
 		}
-		sh.setLoginService(new HashLoginService("Grippus", tempFile.getAbsolutePath()));
+		sh.setLoginService(new HashLoginService("grippus", tempFile.getAbsolutePath()));
 		context.setSecurityHandler(sh);
 		context.setContextPath("/");
 		context.addServlet(NodeRPCImpl.class, "/node/*");
