@@ -2,20 +2,14 @@ package edu.berkeley.grippus.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 
-import edu.berkeley.grippus.client.Command;
-import edu.berkeley.grippus.client.command.Quit;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -27,7 +21,6 @@ public class Node {
 	private final File serverRoot;
 	private final Configuration conf;
 	private final BackingStore bs;
-	private final NodeManagementServer nms;
 	private final Server jetty;
 	
 	public Node(String name) {
@@ -41,7 +34,7 @@ public class Node {
 		maybeInitializeConfig(conf);
 
 		bs = new BackingStore(this, new File(serverRoot, "store"));
-		nms = new NodeManagementServer();
+		System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
 		jetty = new Server(Integer.parseInt(conf.getString("node.port", "11110")));
 	}
 
@@ -56,6 +49,13 @@ public class Node {
 	
 	public void run() {
 		logger.info("Server starting up...");
+		
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		context.setContextPath("/");
+		context.addServlet(NodeRPCImpl.class, "/node/*");
+		NodeManagementRPCImpl.managedNode = this;
+		context.addServlet(NodeManagementRPCImpl.class, "/mgmt/*");
+		jetty.setHandler(context);
 		
 		try {
 			jetty.start();
@@ -108,71 +108,6 @@ public class Node {
 
 	public BackingStore getBackingStore() {
 		return bs;
-	}
-
-	private class NodeManagementServer implements Runnable {
-		ServerSocket ss;
-		
-		private class NodeManagementServerThread implements Runnable {
-			private Socket sock;
-			public NodeManagementServerThread(Socket s) {
-				sock = s;
-			}
-			@Override
-			public void run() {
-				try {
-					ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
-					ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
-					String pw = in.readObject().toString();
-					if (!pw.equals(conf.getString("cluster.password"))) {
-						logger.warn("Bad password from "+sock);
-						in.close();
-						out.close();
-						sock.close();
-						return;
-					}
-					logger.info("Management connect from "+sock);
-					while(running) {
-						Object incoming = in.readObject();
-						Command cmd = (Command) incoming;
-						if (cmd instanceof Quit)
-							break;
-						out.writeObject(cmd.execute(Node.this));
-					}
-					in.close();
-					out.close();
-					sock.close();
-				} catch (IOException e) {
-					logger.warn("I/O exception from management thread", e);
-				} catch (ClassNotFoundException e) {
-					logger.warn("Could not deserialize object", e);
-				} catch (ClassCastException e) {
-					logger.warn("Client did something bad!", e);
-				}
-			}
-		}
-		
-		public NodeManagementServer() {
-			try {
-				ss = new ServerSocket(Integer.parseInt(conf.getString("node.mgmtport", "11111")), 0, InetAddress.getByName("localhost"));
-				Thread nms = new Thread(this);
-				nms.setDaemon(true);
-				nms.start();
-			} catch (IOException e) {
-				logger.error("I/O error; management interface shut down", e);
-			}
-		}
-		@Override
-		public void run() {
-			while(true) {
-				try {
-					Socket s = ss.accept();
-					new Thread(new NodeManagementServerThread(s)).start();
-				} catch (IOException e) {
-					logger.warn("I/O error while talking to client");
-				}
-			}
-		}
 	}
 
 	public void terminate() {

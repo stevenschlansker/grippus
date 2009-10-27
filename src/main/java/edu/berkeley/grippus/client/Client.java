@@ -11,8 +11,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
-import edu.berkeley.grippus.client.command.Quit;
-import edu.berkeley.grippus.client.command.Version;
+import com.caucho.hessian.client.HessianProxyFactory;
+
+import edu.berkeley.grippus.server.NodeManagementRPC;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -30,46 +31,21 @@ public class Client {
 		try {
 			ConsoleReader console = new ConsoleReader();
 
-			Socket sock = new Socket("localhost", Integer.parseInt(console.readLine("Port: ")));
-			ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
-			out.writeObject(console.readLine("Cluster password: ", '*'));
-			ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+			String port = console.readLine("Port: ");
+			String pw = console.readLine("Cluster password: ", '*');
+			
+			String url = "http://localhost:"+port+"/mgmt";
+			HessianProxyFactory factory = new HessianProxyFactory();
+			NodeManagementRPC node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
 			
 			while(true) {
 				String line = console.readLine("> ");
 				if (line == null || line.isEmpty()) break;
 				String[] cmd = line.split("\\s+");
-				Class<?> c;
-				try {
-					c = Class.forName(Client.class.getPackage().getName()+".command."+StringUtils.capitalize(cmd[0]));
-					if (c == null)
-						throw new ClassNotFoundException();
-				} catch (ClassNotFoundException e) {
-					logger.error("No such command "+cmd[0], e);
-					continue;
-				}
-				Command command;
-				try {
-					Object command_ = c.newInstance();
-					if (command_ instanceof Command) {
-						command = (Command) command_;
-					} else {
-						logger.error("Not a command?" + c);
-						continue;
-					}
-				} catch (Exception e) {
-					logger.error("Could not instantiate command instance", e);
-					continue;
-				}
-				command.setArgs(cmd);
-				out.writeObject(command);
-				if (command instanceof Quit) break;
-				try {
-					System.out.println(in.readObject());
-				} catch (ClassNotFoundException e) {
-					logger.error("Could not interpret result", e);
-				}
+				System.out.println(node.version());
 			}
+			
+			System.out.println();
 		} catch (IOException e) {
 			logger.error("I/O error", e);
 		}
