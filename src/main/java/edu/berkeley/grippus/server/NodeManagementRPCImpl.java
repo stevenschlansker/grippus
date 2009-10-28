@@ -3,6 +3,7 @@ package edu.berkeley.grippus.server;
 import com.caucho.hessian.server.HessianServlet;
 
 import edu.berkeley.grippus.fs.DFile;
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.VFS;
 
 public class NodeManagementRPCImpl extends HessianServlet implements NodeManagementRPC {
@@ -40,7 +41,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	}
 
 	@Override
-	public String ls(String cmd, String path) {
+	public String ls(String cmd, DFileSpec path) {
 		VFS vfs = managedNode.getVFS();
 		StringBuilder result = new StringBuilder();
 		result.append(path+":\n");

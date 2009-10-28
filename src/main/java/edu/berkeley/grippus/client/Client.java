@@ -3,6 +3,7 @@ package edu.berkeley.grippus.client;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import jline.ConsoleReader;
 
@@ -11,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
@@ -20,7 +22,7 @@ public class Client {
 	private final Logger logger = log.getLogger(Client.class);
 	private NodeManagementRPC node;
 	
-	private String cwd = "/";
+	private DFileSpec cwd = DFileSpec.ROOT;
 	
 	public static void main(String[] args) {
 		new Client().run();
@@ -48,7 +50,7 @@ public class Client {
 				if (line == null || line.isEmpty()) break;
 				String[] cmd = line.split("\\s+");
 				if (cmd[0].equalsIgnoreCase("quit")) break;
-				executeCommand(node, cmd);
+				executeCommand(node, cmd[0], (Object[])Arrays.copyOfRange(cmd, 1, cmd.length));
 				if (cmd[0].equalsIgnoreCase("terminate")) break;
 			}
 			
@@ -58,13 +60,18 @@ public class Client {
 		}
 	}
 
-	private void executeCommand(NodeManagementRPC node, String... cmd) {
-		Class<?>[] params = new Class<?>[cmd.length];
-		for (int i = 0; i < params.length; i++)
-			params[i] = String.class;
+	private void executeCommand(NodeManagementRPC node, String cmd, Object... args) {
+		Object[] params = new Object[args.length + 1];
+		Class<?>[] paramsClass = new Class<?>[args.length + 1];
+		params[0] = cmd;
+		paramsClass[0] = String.class;
+		for (int i = 0; i < args.length; i++) {
+			params[i+1] = args[i];
+			paramsClass[i+1] = args[i].getClass();
+		}
 		try {
-			Method m = this.getClass().getMethod(cmd[0], params);
-			Object result = m.invoke(this, (Object[])cmd);
+			Method m = this.getClass().getMethod(cmd, paramsClass);
+			Object result = m.invoke(this, (Object[])params);
 			if (result != null) System.out.println(result);
 			return;
 		} catch (SecurityException e) { // try remote
@@ -74,8 +81,8 @@ public class Client {
 		} catch (InvocationTargetException e) { // try remote
 		}
 		try {
-			Method m = node.getClass().getMethod(cmd[0], params);
-			Object result = m.invoke(node, (Object[])cmd);
+			Method m = node.getClass().getMethod(cmd, paramsClass);
+			Object result = m.invoke(node, params);
 			if (result != null) System.out.println(result);
 		} catch (SecurityException e) {
 			logger.error("No bitch!", e);
@@ -90,7 +97,7 @@ public class Client {
 		}
 	}
 	
-	public String pwd(String cmd) {
+	public DFileSpec pwd(String cmd) {
 		return cwd;
 	}
 	

@@ -9,8 +9,8 @@ public class VFS {
 		return cwd.getChildren();
 	}
 
-	public DFile resolve(String path) {
-		if (path.equals("/")) return root;
+	public DFile resolve(DFileSpec path) {
+		if (path.getPath().equals("/")) return root;
 		return null;
 	}
 
