@@ -56,4 +56,9 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public Result mkdir(String cmd, DFileSpec dir) {
 		return managedNode.getVFS().find(dir).mkdir();
 	}
+
+	@Override
+	public DFileSpec canonicalizePath(DFileSpec path) {
+		return managedNode.getVFS().canonicalize(path);
+	}
 }

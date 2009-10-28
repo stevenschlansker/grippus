@@ -17,4 +17,8 @@ public class VFS {
 	public DFile find(DFileSpec path) {
 		return root.find(path);
 	}
+
+	public DFileSpec canonicalize(DFileSpec path) {
+		return path;
+	}
 }

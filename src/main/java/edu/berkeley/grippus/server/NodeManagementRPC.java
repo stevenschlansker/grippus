@@ -12,5 +12,6 @@ public interface NodeManagementRPC {
 	public String disconnect(String cmd);
 	public String ls(String cmd, DFileSpec path);
 	public Result mkdir(String cmd, DFileSpec dir);
+	public DFileSpec canonicalizePath(DFileSpec append);
 
 }

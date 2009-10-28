@@ -28,6 +28,8 @@ public class DFileSpec implements Serializable {
 	}
 
 	public DFileSpec append(String dirname) {
+		if (dirname.charAt(0) == '/')
+			return new DFileSpec(dirname);
 		return new DFileSpec(path + "/" + dirname);
 	}
 

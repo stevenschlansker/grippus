@@ -106,7 +106,7 @@ public class Client {
 	}
 
 	public void cd(String cmd, String dir) {
-		cwd = cwd.append(dir);
+		cwd = node.canonicalizePath(cwd.append(dir));
 	}
 
 	public DFileSpec pwd(String cmd) {
