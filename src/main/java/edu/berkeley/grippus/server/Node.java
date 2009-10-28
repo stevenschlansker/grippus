@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashMap;
 
 import jline.ConsoleReader;
 
@@ -36,7 +37,10 @@ public class Node {
 	private final int port;
 	
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
+	private final HashMap<NodeRPC,String> clusterURLs = new HashMap<NodeRPC,String>();
 	
+	private NodeRPC masterServer = null;
+	private String masterURL = null;
 	private NodeState state = NodeState.DISCONNECTED;
 	
 	public Node(String name) {
@@ -48,13 +52,12 @@ public class Node {
 		conf = new Configuration(this, new File(serverRoot, "config"));
 		conf.set("node.name", name);
 		maybeInitializeConfig(conf);
-
 		bs = new BackingStore(this, new File(serverRoot, "store"));
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
 		port = Integer.parseInt(conf.getString("node.port", "11110"));
 		jetty = new Server(port);
 	}
-
+	
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 		if (args.length < 1 || args[0] == null || args[0].isEmpty()) {
@@ -137,6 +140,7 @@ public class Node {
 			//maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
 			maybeInitialize(conf, inp, "mgmt.password", "Management password: ");
+			
 		} catch (IOException e) {
 			logger.error("Could not read from console; cannot configure, dying");
 			throw new RuntimeException("I/O problem", e);
@@ -160,6 +164,13 @@ public class Node {
 	public synchronized boolean addPeer(String string, int port) {
 		return false;
 	}
+	
+	public Boolean isMaster() {
+		if (state == NodeState.MASTER) {
+			return true;
+		}
+		return false;
+	}
 
 	public String status() {
 		String result = "Node " + name + ": " + state + "\n";
@@ -175,15 +186,59 @@ public class Node {
 	public synchronized boolean initCluster(String clusterName) {
 		disconnect();
 		state = NodeState.MASTER;
-		this.clusterName = clusterName;
-		clusterID = UUID.randomUUID();
+		this.setClusterName(clusterName);
+		setClusterID(UUID.randomUUID());
 		return true;
 	}
 
 	public synchronized void disconnect() {
-		clusterID = null;
-		clusterName = null;
-		clusterMembers.clear();
+		setClusterID(null);
+		setClusterName(null);
+		getClusterMembers().clear();
 		state = NodeState.DISCONNECTED;
+	}
+
+	public Set<NodeRPC> getClusterMembers() {
+		return clusterMembers;
+	}
+
+	public HashMap<NodeRPC,String> getClusterURLs() {
+		return clusterURLs;
+	}
+
+	public void setMasterServer(NodeRPC masterServer) {
+		this.masterServer = masterServer;
+	}
+
+	public NodeRPC getMasterServer() {
+		return masterServer;
+	}
+
+	public void setMasterURL(String masterURL) {
+		this.masterURL = masterURL;
+	}
+
+	public String getMasterURL() {
+		return masterURL;
+	}
+
+	public void setClusterID(UUID clusterID) {
+		this.clusterID = clusterID;
+	}
+
+	public UUID getClusterID() {
+		return clusterID;
+	}
+
+	public void setClusterName(String clusterName) {
+		this.clusterName = clusterName;
+	}
+
+	public String getClusterName() {
+		return clusterName;
+	}
+
+	public int getPort() {
+		return port;
 	}
 }

@@ -1,6 +1,7 @@
 package edu.berkeley.grippus.server;
 
 import com.caucho.hessian.server.HessianServlet;
+import java.util.UUID;
 
 public class NodeManagementRPCImpl extends HessianServlet implements NodeManagementRPC {
 	private static final long serialVersionUID = 1L;
