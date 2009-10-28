@@ -29,6 +29,8 @@ public class Node {
 	private final BackingStore bs;
 	private final Server jetty;
 	
+	private NodeState state = NodeState.DISCONNECTED;
+	
 	public Node(String name) {
 		this.name = name;
 		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
@@ -40,13 +42,13 @@ public class Node {
 		maybeInitializeConfig(conf);
 
 		bs = new BackingStore(this, new File(serverRoot, "store"));
-		System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
+		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
 		jetty = new Server(Integer.parseInt(conf.getString("node.port", "11110")));
 	}
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		if (args.length < 1 || args[0] == null) {
+		if (args.length < 1 || args[0] == null || args[0].isEmpty()) {
 			System.err.println("You must supply a node instance name on the command line");
 			System.exit(1);
 		}
@@ -149,4 +151,10 @@ public class Node {
 	public synchronized boolean addPeer(String string, int port) {
 		return false;
 	}
+
+	public String status() {
+		return "Node " + name + ": " + state;
+	}
+	
+	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
 }

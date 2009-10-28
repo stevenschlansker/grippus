@@ -4,5 +4,6 @@ public interface NodeManagementRPC {
 
 	public String version(String cmd);
 	public String terminate(String cmd);
+	public String status(String cmd);
 
 }
