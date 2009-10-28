@@ -4,12 +4,10 @@ import com.caucho.hessian.server.HessianServlet;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	private static final long serialVersionUID = 1L;
-	private Node myNode;
 
 	public NodeRPCImpl() { /* nothing */ }
 	
 	NodeRPCImpl(Node node) {
-		myNode = node;
 	}
 
 }

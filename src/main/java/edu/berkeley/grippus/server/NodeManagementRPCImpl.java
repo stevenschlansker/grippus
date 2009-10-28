@@ -9,7 +9,7 @@ import edu.berkeley.grippus.fs.VFS;
 
 public class NodeManagementRPCImpl extends HessianServlet implements NodeManagementRPC {
 	private static final long serialVersionUID = 1L;
-	static Node managedNode; // TODO: ugly fucking hack!!! :( :( :(
+	static Node managedNode = Node.getNode(); // TODO: ugly fucking hack!!! :( :( :(
 
 	public NodeManagementRPCImpl() { /* do nothing */ }
 
@@ -46,7 +46,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 		VFS vfs = managedNode.getVFS();
 		StringBuilder result = new StringBuilder();
 		result.append(path+":\n");
-		for (DFile f : vfs.ls(vfs.resolve(path))) {
+		for (DFile f : vfs.ls(vfs.resolve(path)).values()) {
 			result.append(f);
 		}
 		return result.toString();

@@ -35,14 +35,19 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
-	
+
 	private final VFS vfs = new VFS();
-	
+
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
-	
+
+	private static Node thisNode;
+
 	private NodeState state = NodeState.DISCONNECTED;
-	
+
 	public Node(String name) {
+		if (thisNode != null)
+			throw new RuntimeException("Already made a node here... static for now (I know this is bad!)");
+		thisNode = this;
 		this.name = name;
 		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
 		if (!serverRoot.exists()) serverRoot.mkdirs();
@@ -192,5 +197,9 @@ public class Node {
 
 	public VFS getVFS() {
 		return vfs;
+	}
+
+	public static Node getNode() {
+		return thisNode;
 	}
 }
