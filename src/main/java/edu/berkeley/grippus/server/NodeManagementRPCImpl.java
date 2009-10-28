@@ -23,4 +23,16 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public String status(String cmd) {
 		return managedNode.status();
 	}
+
+	@Override
+	public String initCluster(String cmd, String clusterName) {
+		String result = managedNode.initCluster(clusterName) ? "Success" : "Failed";
+		return result + "\n" + status(cmd);
+	}
+
+	@Override
+	public String disconnect(String cmd) {
+		managedNode.disconnect();
+		return status(cmd);
+	}
 }

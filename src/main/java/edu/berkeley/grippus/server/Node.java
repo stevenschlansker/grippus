@@ -3,6 +3,7 @@ package edu.berkeley.grippus.server;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.UUID;
 
 import jline.ConsoleReader;
 
@@ -28,6 +29,8 @@ public class Node {
 	private final Configuration conf;
 	private final BackingStore bs;
 	private final Server jetty;
+	private UUID clusterID;
+	private String clusterName;
 	
 	private NodeState state = NodeState.DISCONNECTED;
 	
@@ -100,7 +103,7 @@ public class Node {
 			tempFile = File.createTempFile("realm", "passwd");
 			tempFile.deleteOnExit();
 			FileWriter w = new FileWriter(tempFile);
-			w.write("grippus: " + conf.getString("cluster.password")+", grippus");
+			w.write("grippus: " + conf.getString("mgmt.password")+", grippus");
 			w.close();
 		} catch (IOException e) {
 			logger.error("IO exception while setting up authentication: ", e);
@@ -127,8 +130,7 @@ public class Node {
 			maybeInitialize(conf, inp, "node.port", "Node port [11110]: ");
 			maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
-			//maybeInitialize(conf, inp, "cluster.salt", "Cluster salt: ");
-			maybeInitialize(conf, inp, "cluster.password", "Cluster password: ");
+			maybeInitialize(conf, inp, "mgmt.password", "Management password: ");
 		} catch (IOException e) {
 			logger.error("Could not read from console; cannot configure, dying");
 			throw new RuntimeException("I/O problem", e);
@@ -144,7 +146,8 @@ public class Node {
 		return bs;
 	}
 
-	public void terminate() {
+	public synchronized void terminate() {
+		disconnect();
 		running = false;
 	}
 
@@ -153,8 +156,25 @@ public class Node {
 	}
 
 	public String status() {
-		return "Node " + name + ": " + state;
+		String result = "Node " + name + ": " + state + "\n";
+		if (state == NodeState.SLAVE || state == NodeState.MASTER)
+			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
+		return result;
 	}
 	
 	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
+
+	public synchronized boolean initCluster(String clusterName) {
+		disconnect();
+		state = NodeState.MASTER;
+		this.clusterName = clusterName;
+		clusterID = UUID.randomUUID();
+		return true;
+	}
+
+	public synchronized void disconnect() {
+		clusterID = null;
+		clusterName = null;
+		state = NodeState.DISCONNECTED;
+	}
 }
