@@ -21,4 +21,8 @@ public class DFileSpec implements Serializable {
 		return path;
 	}
 
+	public DFileSpec find(String path) {
+		return ROOT;
+	}
+
 }

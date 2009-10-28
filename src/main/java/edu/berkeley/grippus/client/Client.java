@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
+import edu.berkeley.grippus.Result;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
 import edu.berkeley.grippus.util.Logging;
@@ -67,23 +68,25 @@ public class Client {
 		paramsClass[0] = String.class;
 		for (int i = 0; i < args.length; i++) {
 			params[i+1] = args[i];
-			paramsClass[i+1] = args[i].getClass();
+			if (args[i] != null)
+				paramsClass[i+1] = args[i].getClass();
+			else
+				paramsClass[i+1] = Object.class;
 		}
 		try {
 			Method m = this.getClass().getMethod(cmd, paramsClass);
-			Object result = m.invoke(this, (Object[])params);
-			if (result != null) System.out.println(result);
+			handleResult(m.invoke(this, (Object[])params));
 			return;
 		} catch (SecurityException e) { // try remote
 		} catch (NoSuchMethodException e) { // try remote
 		} catch (IllegalArgumentException e) { // try remote
 		} catch (IllegalAccessException e) { // try remote
 		} catch (InvocationTargetException e) { // try remote
+			logger.error("Invocation target exception", e);
 		}
 		try {
 			Method m = node.getClass().getMethod(cmd, paramsClass);
-			Object result = m.invoke(node, params);
-			if (result != null) System.out.println(result);
+			handleResult(m.invoke(node, params));
 		} catch (SecurityException e) {
 			logger.error("No bitch!", e);
 		} catch (NoSuchMethodException e) {
@@ -97,12 +100,20 @@ public class Client {
 		}
 	}
 	
+	private void handleResult(Object result) {
+		if (result != null) System.out.println(result);
+		if (Result.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
+	}
+
 	public DFileSpec pwd(String cmd) {
 		return cwd;
 	}
 	
-	public String ls(String cmd) {
+	public void ls(String cmd) {
 		executeCommand(node, cmd, cwd);
-		return null;
+	}
+	
+	public void mkdir(String cmd, String dirname) {
+		executeCommand(node, cmd, cwd.find(dirname));
 	}
 }

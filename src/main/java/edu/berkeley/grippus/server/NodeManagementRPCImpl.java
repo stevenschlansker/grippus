@@ -2,6 +2,7 @@ package edu.berkeley.grippus.server;
 
 import com.caucho.hessian.server.HessianServlet;
 
+import edu.berkeley.grippus.Result;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.VFS;
@@ -29,9 +30,9 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	}
 
 	@Override
-	public String initCluster(String cmd, String clusterName) {
-		String result = managedNode.initCluster(clusterName) ? "Success" : "Failed";
-		return result + "\n" + status(cmd);
+	public Result initCluster(String cmd, String clusterName) {
+		managedNode.initCluster(clusterName);
+		return Result.SUCCESS_TOPOLOGY_CHANGE;
 	}
 
 	@Override
@@ -49,5 +50,10 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 			result.append(f);
 		}
 		return result.toString();
+	}
+
+	@Override
+	public Result mkdir(String cmd, DFileSpec dir) {
+		return Result.ERROR_EXISTS;
 	}
 }
