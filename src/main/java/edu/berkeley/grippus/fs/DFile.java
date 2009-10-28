@@ -1,13 +1,9 @@
 package edu.berkeley.grippus.fs;
 
-import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
 
 public abstract class DFile {
 
