@@ -14,7 +14,7 @@ public class VFS {
 		return null;
 	}
 
-	public DFileSpec find(DFileSpec path) {
+	public DFile find(DFileSpec path) {
 		return root.find(path);
 	}
 }
