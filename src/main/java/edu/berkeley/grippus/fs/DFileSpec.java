@@ -6,12 +6,19 @@ import edu.berkeley.grippus.server.Node;
 
 public class DFileSpec implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private final String path;
+	private String path;
+
+	@SuppressWarnings("unused")
+	private DFileSpec() { /* for serialization */ }
 
 	public DFileSpec(String path) {
-		this.path = path;
+		this.path = simplify(path);
 	}
-	
+
+	private static String simplify(String path) {
+		return path.replaceAll("//*", "/");
+	}
+
 	@Override
 	public String toString() {
 		return path;
