@@ -23,7 +23,7 @@ public class DFileSpec implements Serializable {
 		return path;
 	}
 
-	public DFileSpec find(String path) {
+	public DFile find(String path) {
 		return Node.getNode().getVFS().find(this).find(path);
 	}
 
