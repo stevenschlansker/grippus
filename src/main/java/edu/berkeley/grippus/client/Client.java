@@ -113,15 +113,15 @@ public class Client {
 		return cwd;
 	}
 
-	public void ls(String cmd) {
-		executeCommand(node, cmd, cwd);
+	public String ls(String cmd) {
+		return node.ls(cmd, cwd);
 	}
 
-	public void ls(String cmd, String target) {
-		executeCommand(node, cmd, new DFileSpec(cwd + "/" + target));
+	public String ls(String cmd, String target) {
+		return node.ls(cmd, new DFileSpec(cwd + "/" + target));
 	}
 
-	public void mkdir(String cmd, String dirname) {
-		executeCommand(node, cmd, cwd.append(dirname));
+	public Result mkdir(String cmd, String dirname) {
+		return node.mkdir(cmd, cwd.append(dirname));
 	}
 }
