@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.Errno;
 
 public abstract class DFile {
 
@@ -56,8 +56,8 @@ public abstract class DFile {
 	}
 
 	/** On a directory entry, create it */
-	public abstract Result mkdir();
+	public abstract Errno mkdir();
 
 	/** On a directory, create the named child */
-	public abstract Result mkdir(String name);
+	public abstract Errno mkdir(String name);
 }

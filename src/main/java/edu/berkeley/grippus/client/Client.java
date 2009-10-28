@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
-import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
 import edu.berkeley.grippus.util.Logging;
@@ -102,7 +102,7 @@ public class Client {
 
 	private void handleResult(Object result) {
 		if (result != null) System.out.println(result);
-		if (Result.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
+		if (Errno.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
 	}
 
 	public void cd(String cmd, String dir) {
@@ -121,7 +121,7 @@ public class Client {
 		return node.ls(cmd, new DFileSpec(cwd + "/" + target));
 	}
 
-	public Result mkdir(String cmd, String dirname) {
+	public Errno mkdir(String cmd, String dirname) {
 		return node.mkdir(cmd, cwd.append(dirname));
 	}
 }

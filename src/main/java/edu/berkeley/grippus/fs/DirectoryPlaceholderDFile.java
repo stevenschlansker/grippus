@@ -1,6 +1,6 @@
 package edu.berkeley.grippus.fs;
 
-import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.Errno;
 
 public class DirectoryPlaceholderDFile extends DFile {
 	
@@ -14,12 +14,12 @@ public class DirectoryPlaceholderDFile extends DFile {
 	}
 
 	@Override
-	public Result mkdir() {
+	public Errno mkdir() {
 		return parent.mkdir(name);
 	}
 
 	@Override
-	public Result mkdir(String name) {
-		return Result.ERROR_FILE_NOT_FOUND;
+	public Errno mkdir(String name) {
+		return Errno.ERROR_FILE_NOT_FOUND;
 	}
 }

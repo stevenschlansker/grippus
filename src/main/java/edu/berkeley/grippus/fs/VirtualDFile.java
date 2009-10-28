@@ -1,6 +1,6 @@
 package edu.berkeley.grippus.fs;
 
-import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.Errno;
 
 public class VirtualDFile extends DFile {
 	
@@ -14,17 +14,17 @@ public class VirtualDFile extends DFile {
 	}
 
 	@Override
-	public Result mkdir() {
-		return Result.ERROR_EXISTS;
+	public Errno mkdir() {
+		return Errno.ERROR_EXISTS;
 	}
 
 	@Override
-	public Result mkdir(String name) {
+	public Errno mkdir(String name) {
 		if (getChildren().containsKey(name))
-			return Result.ERROR_FILE_NOT_FOUND;
+			return Errno.ERROR_FILE_NOT_FOUND;
 		if (!nameValid(name))
-			return Result.ERROR_BAD_NAME;
+			return Errno.ERROR_BAD_NAME;
 		getChildren().put(name, new VirtualDFile(name, this));
-		return Result.SUCCESS;
+		return Errno.SUCCESS;
 	}
 }
