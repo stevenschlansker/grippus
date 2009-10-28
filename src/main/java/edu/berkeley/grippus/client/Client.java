@@ -18,6 +18,10 @@ import edu.berkeley.grippus.util.log.Log4JLogger;
 public class Client {
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Client.class);
+	private NodeManagementRPC node;
+	
+	private String cwd = "/";
+	
 	public static void main(String[] args) {
 		new Client().run();
 	}
@@ -35,7 +39,7 @@ public class Client {
 			HessianProxyFactory factory = new HessianProxyFactory();
 			factory.setUser("grippus");
 			factory.setPassword(pw);
-			NodeManagementRPC node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
+			node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
 			
 			executeCommand(node, "status");
 			
@@ -59,8 +63,20 @@ public class Client {
 		for (int i = 0; i < params.length; i++)
 			params[i] = String.class;
 		try {
+			Method m = this.getClass().getMethod(cmd[0], params);
+			Object result = m.invoke(this, (Object[])cmd);
+			if (result != null) System.out.println(result);
+			return;
+		} catch (SecurityException e) { // try remote
+		} catch (NoSuchMethodException e) { // try remote
+		} catch (IllegalArgumentException e) { // try remote
+		} catch (IllegalAccessException e) { // try remote
+		} catch (InvocationTargetException e) { // try remote
+		}
+		try {
 			Method m = node.getClass().getMethod(cmd[0], params);
-			System.out.println(m.invoke(node, (Object[])cmd));
+			Object result = m.invoke(node, (Object[])cmd);
+			if (result != null) System.out.println(result);
 		} catch (SecurityException e) {
 			logger.error("No bitch!", e);
 		} catch (NoSuchMethodException e) {
@@ -72,5 +88,14 @@ public class Client {
 		} catch (InvocationTargetException e) {
 			logger.error("Invocation target exception", e);
 		}
+	}
+	
+	public String pwd(String cmd) {
+		return cwd;
+	}
+	
+	public String ls(String cmd) {
+		executeCommand(node, cmd, cwd);
+		return null;
 	}
 }

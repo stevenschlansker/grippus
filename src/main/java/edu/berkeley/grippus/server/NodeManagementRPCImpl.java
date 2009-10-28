@@ -2,6 +2,9 @@ package edu.berkeley.grippus.server;
 
 import com.caucho.hessian.server.HessianServlet;
 
+import edu.berkeley.grippus.fs.DFile;
+import edu.berkeley.grippus.fs.VFS;
+
 public class NodeManagementRPCImpl extends HessianServlet implements NodeManagementRPC {
 	private static final long serialVersionUID = 1L;
 	static Node managedNode; // TODO: ugly fucking hack!!! :( :( :(
@@ -34,5 +37,16 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public String disconnect(String cmd) {
 		managedNode.disconnect();
 		return status(cmd);
+	}
+
+	@Override
+	public String ls(String cmd, String path) {
+		VFS vfs = managedNode.getVFS();
+		StringBuilder result = new StringBuilder();
+		result.append(path+":\n");
+		for (DFile f : vfs.ls(vfs.resolve(path))) {
+			result.append(f);
+		}
+		return result.toString();
 	}
 }

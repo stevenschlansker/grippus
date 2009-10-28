@@ -18,6 +18,7 @@ import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
+import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -34,6 +35,8 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
+	
+	private final VFS vfs = new VFS();
 	
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
 	
@@ -185,5 +188,9 @@ public class Node {
 		clusterName = null;
 		clusterMembers.clear();
 		state = NodeState.DISCONNECTED;
+	}
+
+	public VFS getVFS() {
+		return vfs;
 	}
 }
