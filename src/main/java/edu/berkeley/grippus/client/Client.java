@@ -37,34 +37,40 @@ public class Client {
 			factory.setPassword(pw);
 			NodeManagementRPC node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
 			
+			executeCommand(node, "status");
+			
 			while(true) {
 				String line = console.readLine("> ");
 				if (line == null || line.isEmpty()) break;
 				String[] cmd = line.split("\\s+");
-				Class<?>[] params = new Class<?>[cmd.length];
 				if (cmd[0].equalsIgnoreCase("quit")) break;
-				for (int i = 0; i < params.length; i++)
-					params[i] = String.class;
-				try {
-					Method m = node.getClass().getMethod(cmd[0], params);
-					System.out.println(m.invoke(node, (Object[])cmd));
-				} catch (SecurityException e) {
-					logger.error("No bitch!", e);
-				} catch (NoSuchMethodException e) {
-					logger.error("No such method", e);
-				} catch (IllegalArgumentException e) {
-					logger.error("Bad arguments", e);
-				} catch (IllegalAccessException e) {
-					logger.error("No bitch!", e);
-				} catch (InvocationTargetException e) {
-					logger.error("Invocation target exception", e);
-				}
+				executeCommand(node, cmd);
 				if (cmd[0].equalsIgnoreCase("terminate")) break;
 			}
 			
 			System.out.println();
 		} catch (IOException e) {
 			logger.error("I/O error", e);
+		}
+	}
+
+	private void executeCommand(NodeManagementRPC node, String... cmd) {
+		Class<?>[] params = new Class<?>[cmd.length];
+		for (int i = 0; i < params.length; i++)
+			params[i] = String.class;
+		try {
+			Method m = node.getClass().getMethod(cmd[0], params);
+			System.out.println(m.invoke(node, (Object[])cmd));
+		} catch (SecurityException e) {
+			logger.error("No bitch!", e);
+		} catch (NoSuchMethodException e) {
+			logger.error("No such method", e);
+		} catch (IllegalArgumentException e) {
+			logger.error("Bad arguments", e);
+		} catch (IllegalAccessException e) {
+			logger.error("No bitch!", e);
+		} catch (InvocationTargetException e) {
+			logger.error("Invocation target exception", e);
 		}
 	}
 }
