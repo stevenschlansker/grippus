@@ -3,7 +3,7 @@ package edu.berkeley.grippus.fs;
 import java.util.Map;
 
 public class VFS {
-	private DFile root = new VirtualDFile();
+	private DFile root = new VirtualDFile("%ROOT%");
 
 	public Map<String, DFile> ls(DFile cwd) {
 		return cwd.getChildren();
@@ -11,7 +11,7 @@ public class VFS {
 
 	public DFile resolve(DFileSpec path) {
 		if (path.getPath().equals("/")) return root;
-		return null;
+		return root.find(path);
 	}
 
 	public DFile find(DFileSpec path) {
