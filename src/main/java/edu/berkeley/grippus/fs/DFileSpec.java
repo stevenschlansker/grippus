@@ -16,7 +16,7 @@ public class DFileSpec implements Serializable {
 	}
 
 	private static String simplify(String path) {
-		return path.replaceAll("//*", "/");
+		return path.replaceAll("//*", "/").replaceAll("/./", "/");
 	}
 
 	@Override

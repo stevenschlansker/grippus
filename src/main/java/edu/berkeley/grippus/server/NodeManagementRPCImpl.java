@@ -46,8 +46,9 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 		VFS vfs = managedNode.getVFS();
 		StringBuilder result = new StringBuilder();
 		result.append(path+":\n");
-		for (DFile f : vfs.ls(vfs.resolve(path)).values()) {
+		for (String f : vfs.ls(vfs.resolve(path)).keySet()) {
 			result.append(f);
+			result.append("\n");
 		}
 		return result.toString();
 	}

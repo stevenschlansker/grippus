@@ -3,8 +3,14 @@ package edu.berkeley.grippus.fs;
 import edu.berkeley.grippus.Result;
 
 public class VirtualDFile extends DFile {
-	public VirtualDFile(String name) {
+	
+	private final DFile parent;
+	
+	public VirtualDFile(String name, DFile parent) {
 		super(name);
+		this.parent = parent;
+		getChildren().put("..", parent);
+		getChildren().put(".", this);
 	}
 
 	@Override
@@ -18,7 +24,7 @@ public class VirtualDFile extends DFile {
 			return Result.ERROR_FILE_NOT_FOUND;
 		if (!nameValid(name))
 			return Result.ERROR_BAD_NAME;
-		getChildren().put(name, new VirtualDFile(name));
+		getChildren().put(name, new VirtualDFile(name, this));
 		return Result.SUCCESS;
 	}
 }
