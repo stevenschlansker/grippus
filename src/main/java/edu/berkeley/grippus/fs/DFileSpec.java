@@ -27,4 +27,8 @@ public class DFileSpec implements Serializable {
 		return Node.getNode().getVFS().find(this).find(path);
 	}
 
+	public DFileSpec append(String dirname) {
+		return new DFileSpec(path + "/" + dirname);
+	}
+
 }
