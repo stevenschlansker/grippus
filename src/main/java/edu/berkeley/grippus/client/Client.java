@@ -99,21 +99,29 @@ public class Client {
 			logger.error("Invocation target exception", e);
 		}
 	}
-	
+
 	private void handleResult(Object result) {
 		if (result != null) System.out.println(result);
 		if (Result.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
 	}
 
+	public void cd(String cmd, String dir) {
+		cwd = cwd.append(dir);
+	}
+
 	public DFileSpec pwd(String cmd) {
 		return cwd;
 	}
-	
+
 	public void ls(String cmd) {
 		executeCommand(node, cmd, cwd);
 	}
-	
+
+	public void ls(String cmd, String target) {
+		executeCommand(node, cmd, new DFileSpec(cwd + "/" + target));
+	}
+
 	public void mkdir(String cmd, String dirname) {
-		executeCommand(node, cmd, cwd.find(dirname));
+		executeCommand(node, cmd, cwd.append(dirname));
 	}
 }
