@@ -9,12 +9,11 @@ import com.sun.jdmk.comm.MalformedHttpException;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	private static final long serialVersionUID = 1L;
-	private Node myNode;
 
+	private Node myNode;
 	public NodeRPCImpl() { /* nothing */ }
 	
 	NodeRPCImpl(Node node) {
-		myNode = node;
 	}
 
 	/*** 

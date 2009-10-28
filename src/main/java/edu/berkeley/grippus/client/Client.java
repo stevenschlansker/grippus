@@ -3,6 +3,7 @@ package edu.berkeley.grippus.client;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import jline.ConsoleReader;
 
@@ -11,6 +12,8 @@ import org.apache.log4j.Logger;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
+import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
@@ -18,6 +21,10 @@ import edu.berkeley.grippus.util.log.Log4JLogger;
 public class Client {
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Client.class);
+	private NodeManagementRPC node;
+	
+	private DFileSpec cwd = DFileSpec.ROOT;
+	
 	public static void main(String[] args) {
 		new Client().run();
 	}
@@ -35,7 +42,7 @@ public class Client {
 			HessianProxyFactory factory = new HessianProxyFactory();
 			factory.setUser("grippus");
 			factory.setPassword(pw);
-			NodeManagementRPC node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
+			node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
 			
 			executeCommand(node, "status");
 			
@@ -44,7 +51,7 @@ public class Client {
 				if (line == null || line.isEmpty()) break;
 				String[] cmd = line.split("\\s+");
 				if (cmd[0].equalsIgnoreCase("quit")) break;
-				executeCommand(node, cmd);
+				executeCommand(node, cmd[0], (Object[])Arrays.copyOfRange(cmd, 1, cmd.length));
 				if (cmd[0].equalsIgnoreCase("terminate")) break;
 			}
 			
@@ -54,13 +61,32 @@ public class Client {
 		}
 	}
 
-	private void executeCommand(NodeManagementRPC node, String... cmd) {
-		Class<?>[] params = new Class<?>[cmd.length];
-		for (int i = 0; i < params.length; i++)
-			params[i] = String.class;
+	private void executeCommand(NodeManagementRPC node, String cmd, Object... args) {
+		Object[] params = new Object[args.length + 1];
+		Class<?>[] paramsClass = new Class<?>[args.length + 1];
+		params[0] = cmd;
+		paramsClass[0] = String.class;
+		for (int i = 0; i < args.length; i++) {
+			params[i+1] = args[i];
+			if (args[i] != null)
+				paramsClass[i+1] = args[i].getClass();
+			else
+				paramsClass[i+1] = Object.class;
+		}
 		try {
-			Method m = node.getClass().getMethod(cmd[0], params);
-			System.out.println(m.invoke(node, (Object[])cmd));
+			Method m = this.getClass().getMethod(cmd, paramsClass);
+			handleResult(m.invoke(this, (Object[])params));
+			return;
+		} catch (SecurityException e) { // try remote
+		} catch (NoSuchMethodException e) { // try remote
+		} catch (IllegalArgumentException e) { // try remote
+		} catch (IllegalAccessException e) { // try remote
+		} catch (InvocationTargetException e) { // try remote
+			logger.error("Invocation target exception", e);
+		}
+		try {
+			Method m = node.getClass().getMethod(cmd, paramsClass);
+			handleResult(m.invoke(node, params));
 		} catch (SecurityException e) {
 			logger.error("No bitch!", e);
 		} catch (NoSuchMethodException e) {
@@ -72,5 +98,22 @@ public class Client {
 		} catch (InvocationTargetException e) {
 			logger.error("Invocation target exception", e);
 		}
+	}
+	
+	private void handleResult(Object result) {
+		if (result != null) System.out.println(result);
+		if (Result.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
+	}
+
+	public DFileSpec pwd(String cmd) {
+		return cwd;
+	}
+	
+	public void ls(String cmd) {
+		executeCommand(node, cmd, cwd);
+	}
+	
+	public void mkdir(String cmd, String dirname) {
+		executeCommand(node, cmd, cwd.find(dirname));
 	}
 }

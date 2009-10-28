@@ -19,6 +19,7 @@ import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
+import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -35,15 +36,23 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
-	
+
+	private final VFS vfs = new VFS();
+
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
 	private final HashMap<NodeRPC,String> clusterURLs = new HashMap<NodeRPC,String>();
 	
 	private NodeRPC masterServer = null;
 	private String masterURL = null;
+
+	private static Node thisNode;
+
 	private NodeState state = NodeState.DISCONNECTED;
-	
+
 	public Node(String name) {
+		if (thisNode != null)
+			throw new RuntimeException("Already made a node here... static for now (I know this is bad!)");
+		thisNode = this;
 		this.name = name;
 		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
 		if (!serverRoot.exists()) serverRoot.mkdirs();
@@ -240,5 +249,12 @@ public class Node {
 
 	public int getPort() {
 		return port;
+	}
+	public VFS getVFS() {
+		return vfs;
+	}
+
+	public static Node getNode() {
+		return thisNode;
 	}
 }
