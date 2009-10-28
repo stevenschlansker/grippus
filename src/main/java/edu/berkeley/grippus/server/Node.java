@@ -3,6 +3,8 @@ package edu.berkeley.grippus.server;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import jline.ConsoleReader;
@@ -31,6 +33,9 @@ public class Node {
 	private final Server jetty;
 	private UUID clusterID;
 	private String clusterName;
+	private final int port;
+	
+	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
 	
 	private NodeState state = NodeState.DISCONNECTED;
 	
@@ -46,7 +51,8 @@ public class Node {
 
 		bs = new BackingStore(this, new File(serverRoot, "store"));
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
-		jetty = new Server(Integer.parseInt(conf.getString("node.port", "11110")));
+		port = Integer.parseInt(conf.getString("node.port", "11110"));
+		jetty = new Server(port);
 	}
 
 	public static void main(String[] args) {
@@ -128,7 +134,7 @@ public class Node {
 			inp = new ConsoleReader();
 			maybeInitialize(conf, inp, "node.name", "Node name: ");
 			maybeInitialize(conf, inp, "node.port", "Node port [11110]: ");
-			maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
+			//maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
 			maybeInitialize(conf, inp, "mgmt.password", "Management password: ");
 		} catch (IOException e) {
@@ -159,6 +165,8 @@ public class Node {
 		String result = "Node " + name + ": " + state + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
+		if (state == NodeState.MASTER)
+			result += "Advertise url: http://<external ip>:"+port+"/node";
 		return result;
 	}
 	
@@ -175,6 +183,7 @@ public class Node {
 	public synchronized void disconnect() {
 		clusterID = null;
 		clusterName = null;
+		clusterMembers.clear();
 		state = NodeState.DISCONNECTED;
 	}
 }
