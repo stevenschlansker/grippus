@@ -362,8 +362,8 @@ public class Node {
 			String clusterUUIDString = master.getMasterClusterUUID();
 			UUID clusterID = UUID.fromString(clusterUUIDString);
 			this.setClusterID(clusterID);
-			String nodeURL = "http://"+this.getIpAddress()+":"+String.valueOf(this.getPort())+"/node";
-			this.getMasterServer().getNewNode(nodeURL);
+			this.getMasterServer().getNewNode(this.myNodeURL);
+			this.state = NodeState.SLAVE;
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception with master server url");
 		}
