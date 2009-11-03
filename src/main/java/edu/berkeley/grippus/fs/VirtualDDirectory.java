@@ -17,8 +17,8 @@ public class VirtualDDirectory extends DFile {
 		initializeChildren(parent);
 	}
 
+	/** for RootDFile's use, self-referential parent */
 	protected VirtualDDirectory(String name) {
-		/* for RootDFile's use, don't specify a parent */
 		super(name);
 		this.parent = this;
 		initializeChildren(parent);
