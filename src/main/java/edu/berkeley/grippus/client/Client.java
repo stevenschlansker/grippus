@@ -26,22 +26,22 @@ public class Client {
 	private DFileSpec cwd = DFileSpec.ROOT;
 	
 	public static void main(String[] args) {
-		new Client().run();
+		new Client().run(args);
 	}
 	
-	private void run() {
+	private void run(String[] args) {
 		BasicConfigurator.configure();
 		
 		try {
 			ConsoleReader console = new ConsoleReader();
 
-			String port = console.readLine("Port: ");
-			String pw = console.readLine("Cluster password: ", '*');
+			String port = (args.length > 0 ? args[0] : console.readLine("Port: "));
+			//String pw = console.readLine("Cluster password: ", '*');
 			
 			String url = "http://localhost:"+port+"/mgmt";
 			HessianProxyFactory factory = new HessianProxyFactory();
-			factory.setUser("grippus");
-			factory.setPassword(pw);
+			//factory.setUser("grippus");
+			//factory.setPassword(pw);
 			node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
 			
 			executeCommand(node, "status");
@@ -123,5 +123,9 @@ public class Client {
 
 	public Errno mkdir(String cmd, String dirname) {
 		return node.mkdir(cmd, cwd.append(dirname));
+	}
+	
+	public Errno connectToNetwork(String cmd, String masterURL) {
+		return node.connectToNetwork(cmd, masterURL, "k");
 	}
 }
