@@ -202,11 +202,11 @@ public class Node {
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
-			result += "Advertise url: "+this.myNodeURL;
+			result += "Advertise url: " + this.myNodeURL + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER) {
-			result += "Cluster members:\n";
+			result += "Cluster members:";
 			for (String name : getClusterMembers().keySet())
-				result += "\t" + name + "\n";
+				result += "\n\t" + name + "";
 		}
 		return result;
 	}
@@ -389,8 +389,9 @@ public class Node {
 			String clusterUUIDString = master.getMasterClusterUUID();
 			UUID clusterID = UUID.fromString(clusterUUIDString);
 			this.setClusterID(clusterID);
-			String nodeURL = "http://"+this.getIpAddress()+":"+String.valueOf(this.getPort())+"/node";
-			this.getMasterServer().getNewNode(nodeURL);
+			this.clusterMembers.put(masterServerURL, master);
+			this.getMasterServer().getNewNode(this.myNodeURL);
+			this.state = NodeState.SLAVE;
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception with master server url");
 		}
