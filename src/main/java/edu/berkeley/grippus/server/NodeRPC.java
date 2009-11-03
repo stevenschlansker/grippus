@@ -30,8 +30,6 @@ public interface NodeRPC {
 	 *  Should only be called by the MasterNode to a slave. 
 	 */
 	boolean advertiseLeavingNode(NodeRPC leaver);
-
-	
 	
 	
 	

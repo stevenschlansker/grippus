@@ -47,8 +47,7 @@ public class Node {
 	private final VFS vfs = new VFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
 
-	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
-	private final HashMap<NodeRPC,String> clusterURLs = new HashMap<NodeRPC,String>();
+	private final HashMap<String, NodeRPC> clusterMembers = new HashMap<String, NodeRPC>();
 	
 	private NodeRPC masterServer = null;
 	private String masterURL = null;
@@ -209,6 +208,11 @@ public class Node {
 	public synchronized boolean initCluster(String clusterName) {
 		disconnect();
 		state = NodeState.MASTER;
+		try{
+		master = (NodeRPC) factory.create(NodeRPC.class, "http://"+ getIpAddress()+":"+getPort()+"/node");
+		} catch( MalformedURLException e){
+			logger.error("Nodes own URL does not work as a valid URL for making the master node");
+		}
 		this.setClusterName(clusterName);
 		setClusterID(UUID.randomUUID());
 		return true;
@@ -229,12 +233,8 @@ public class Node {
 		state = NodeState.DISCONNECTED;
 	}
 
-	public Set<NodeRPC> getClusterMembers() {
+	public HashMap<String, NodeRPC> getClusterMembers() {
 		return clusterMembers;
-	}
-
-	public HashMap<NodeRPC,String> getClusterURLs() {
-		return clusterURLs;
 	}
 
 	public void setMasterServer(NodeRPC masterServer) {
@@ -298,9 +298,17 @@ public class Node {
 		master.joinCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
 		HashSet<String> members = master.getClusterList();
 		for( String member: members){
-			clusterMembers.add((NodeRPC) factory.create(NodeRPC.class, member));
+			clusterMembers.put(member, (NodeRPC) factory.create(NodeRPC.class, member));
 		}
 		state = NodeState.SLAVE;
+	}
+	
+	/** Asks the master for the canonical cluster member list and checks it against
+	 *  our own; removes any excess and adds any unlisted.
+	 * @return
+	 */
+	public void checkClusterMembers(){
+		HashSet
 	}
 	
 	public static Node getNode() {
