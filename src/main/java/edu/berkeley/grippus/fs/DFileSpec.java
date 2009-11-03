@@ -2,8 +2,6 @@ package edu.berkeley.grippus.fs;
 
 import java.io.Serializable;
 
-import edu.berkeley.grippus.server.Node;
-
 public class DFileSpec implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String path;
@@ -28,10 +26,6 @@ public class DFileSpec implements Serializable {
 
 	public String getPath() {
 		return path;
-	}
-
-	public DFile find(String path) {
-		return Node.getNode().getVFS().find(this).find(path);
 	}
 
 	public DFileSpec append(String dirname) {
