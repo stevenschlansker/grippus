@@ -58,11 +58,11 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	 * Sends the message to master server to broadcast its existence.
 	 * @param masterServerURL
 	 */
-	public void connectToServer(String masterServerURL) {
+	public void connectToServer(String masterServerURL, String clusterPassword) {
 		if (myNode == null) {
 			myNode = Node.getNode();
 		}
-		myNode.connectToServer(masterServerURL);
+		myNode.connectToServer(masterServerURL, clusterPassword);
 	}
 	
 	/***
