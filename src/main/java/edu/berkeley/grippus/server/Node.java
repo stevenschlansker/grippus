@@ -228,6 +228,7 @@ public class Node {
 			master.leaveCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
 		}
 		master = null;
+		masterURL = null;
 		setClusterID(null);
 		setClusterName(null);
 		getClusterMembers().clear();
