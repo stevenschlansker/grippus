@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import jline.ConsoleReader;
@@ -24,11 +23,13 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
+import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Node {
+	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
 
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Node.class);
@@ -56,6 +57,7 @@ public class Node {
 	private static Node thisNode;
 
 	private NodeState state = NodeState.DISCONNECTED;
+	private String clusterPassword;
 
 	public Node(String name) {
 		if (thisNode != null)
@@ -83,8 +85,8 @@ public class Node {
 		}
 	}
 	
-	Set<String> getClusterURLS(){
-		return clusterMembers.keySet();
+	HashSet<String> getClusterURLS(){
+		return (HashSet<String>) clusterMembers.keySet();
 	}
 	
 	public static void main(String[] args) {
@@ -207,10 +209,13 @@ public class Node {
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
 			result += "Advertise url: "+this.myNodeURL;
+		if (state == NodeState.SLAVE || state == NodeState.MASTER) {
+			result += "Cluster members:\n";
+			for (String name : getClusterMembers().keySet())
+				result += "\t" + name + "\n";
+		}
 		return result;
 	}
-	
-	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
 
 	public synchronized boolean initCluster(String clusterName) {
 		disconnect();
@@ -375,13 +380,10 @@ public class Node {
 	public String getIpAddress() {
 		return ipAddress;
 	}
-	
-	public synchronized void connectToMaster(String masterURL, String clusterPassword) {
-		this.connectToServer(masterURL, clusterPassword);
-	}
 
-	public void connectToServer(String masterServerURL, String clusterPassword) {
+	public Errno connectToServer(String masterServerURL, String clusterPassword) {
 		conf.set("cluster.password", clusterPassword);
+		this.clusterPassword = clusterPassword;
 		try {
 			HessianProxyFactory factory = new HessianProxyFactory();	
 			factory.setUser("grippus");
@@ -398,13 +400,14 @@ public class Node {
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception with master server url");
 		}
+		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
-	 
+
 	public void getNewNode(String newNodeURL) {
 		try {
 			HessianProxyFactory factory = new HessianProxyFactory();
 			factory.setUser("grippus");
-			factory.setPassword("password");
+			factory.setPassword(clusterPassword);
 			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
 			if (this.isMaster()) {
 				for (String nodeURL : this.getClusterMembers().keySet()) {
