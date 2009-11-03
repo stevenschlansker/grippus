@@ -390,6 +390,7 @@ public class Node {
 			String clusterUUIDString = master.getMasterClusterUUID();
 			UUID clusterID = UUID.fromString(clusterUUIDString);
 			this.setClusterID(clusterID);
+			this.clusterMembers.put(masterServerURL, master);
 			this.getMasterServer().getNewNode(this.myNodeURL);
 			this.state = NodeState.SLAVE;
 		} catch (MalformedURLException e) {
