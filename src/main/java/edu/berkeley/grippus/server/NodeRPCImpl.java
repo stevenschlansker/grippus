@@ -1,24 +1,16 @@
 package edu.berkeley.grippus.server;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
-
 import java.util.UUID;
 
-import jline.ConsoleReader;
-
-import com.caucho.hessian.server.HessianServlet;
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.caucho.hessian.server.HessianServlet;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	private static final long serialVersionUID = 1L;
 
 	static Node myNode = Node.getNode();
 	public NodeRPCImpl() { /* nothing */ }
-	
-	NodeRPCImpl(Node node) {
-	
-	}
 
 	/*** 
 	 * Connects to a master server and sets it to master server. 
@@ -44,10 +36,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 			String nodeURL = "http://"+myNode.getIpAddress()+":"+String.valueOf(myNode.getPort())+"/node";
 			myNode.getMasterServer().getNewNode(nodeURL);
 		} catch (MalformedURLException e) {
-			/* empty URL */
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		}
 	}
 	
@@ -73,9 +62,6 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 			myNode.getClusterURLs().put(newNode, newNodeURL);
 		} catch (MalformedURLException e) {
 			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
