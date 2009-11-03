@@ -7,18 +7,18 @@ import com.google.common.collect.Collections2;
 
 import edu.berkeley.grippus.Errno;
 
-public class VirtualDFile extends DFile {
+public class VirtualDDirectory extends DFile {
 	
 	private final DFile parent;
 	
-	public VirtualDFile(String name, DFile parent) {
+	public VirtualDDirectory(String name, DFile parent) {
 		super(name);
 		this.parent = parent;
 		initializeChildren(parent);
 	}
 
-	protected VirtualDFile(String name) {
-		/* for RootDFile's use, don't specify a parent */
+	/** for RootDFile's use, self-referential parent */
+	protected VirtualDDirectory(String name) {
 		super(name);
 		this.parent = this;
 		initializeChildren(parent);
@@ -40,7 +40,7 @@ public class VirtualDFile extends DFile {
 			return Errno.ERROR_FILE_NOT_FOUND;
 		if (!nameValid(name))
 			return Errno.ERROR_BAD_NAME;
-		getChildren().put(name, new VirtualDFile(name, this));
+		getChildren().put(name, new VirtualDDirectory(name, this));
 		return Errno.SUCCESS;
 	}
 
