@@ -3,12 +3,13 @@ package edu.berkeley.grippus.server;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.HashMap;
-import java.net.*;
 
 import jline.ConsoleReader;
 
