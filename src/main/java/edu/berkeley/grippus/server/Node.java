@@ -306,7 +306,6 @@ public class Node {
 	
 	/** Asks the master for the canonical cluster member list and checks it against
 	 *  our own; removes any excess and adds any unlisted.
-	 * @return
 	 */
 	public void checkClusterMembers(){
 		HashSet
