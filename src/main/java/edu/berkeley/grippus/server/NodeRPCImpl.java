@@ -34,9 +34,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 			}
 			HessianProxyFactory factory = new HessianProxyFactory();	
 			factory.setUser("grippus");
-			ConsoleReader console = new ConsoleReader();
-			String pw = console.readLine("Cluster password: ", '*');
-			factory.setPassword(pw);
+			factory.setPassword("password");
 			NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterServerURL);
 			myNode.setMasterServer(master);
 			myNode.setMasterURL(masterServerURL);
@@ -44,8 +42,8 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 			byte[] blah = master.getMasterClusterUUID().getBytes();
 			UUID clusterID = UUID.nameUUIDFromBytes(blah);
 			myNode.setClusterID(clusterID);
-			String nodeURL = "http:\\"+myNode.getIpAddress()+":"+String.valueOf(myNode.getPort());
-//			myNode.getMasterServer().getNewNode(nodeURL);
+			String nodeURL = "http://"+myNode.getIpAddress()+":"+String.valueOf(myNode.getPort())+"/node";
+			myNode.getMasterServer().getNewNode(nodeURL);
 		} catch (MalformedURLException e) {
 			/* empty URL */
 		} catch (IOException e) {
@@ -63,17 +61,22 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 				myNode = Node.getNode();
 			}
 			HessianProxyFactory factory = new HessianProxyFactory();
+			factory.setUser("grippus");
+			factory.setPassword("password");
 			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
-			myNode.getClusterMembers().add(newNode);
-			myNode.getClusterURLs().put(newNode, newNodeURL);
 			if (myNode.isMaster()) {
 				for (NodeRPC node : myNode.getClusterMembers()) {
 					node.getNewNode(newNodeURL);
 					newNode.getNewNode(myNode.getClusterURLs().get(node));
 				}
 			}
+			myNode.getClusterMembers().add(newNode);
+			myNode.getClusterURLs().put(newNode, newNodeURL);
 		} catch (MalformedURLException e) {
 			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
