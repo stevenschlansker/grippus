@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 
 import com.caucho.hessian.server.HessianServlet;
 
+import edu.berkeley.grippus.Errno;
+
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	private static final long serialVersionUID = 1L;
 
@@ -54,11 +56,11 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	 * Sends the message to master server to broadcast its existence.
 	 * @param masterServerURL
 	 */
-	public void connectToServer(String masterServerURL, String clusterPassword) {
+	public Errno connectToServer(String masterServerURL, String clusterPassword) {
 		if (myNode == null) {
 			myNode = Node.getNode();
 		}
-		myNode.connectToServer(masterServerURL, clusterPassword);
+		return myNode.connectToServer(masterServerURL, clusterPassword);
 	}
 	
 	/***

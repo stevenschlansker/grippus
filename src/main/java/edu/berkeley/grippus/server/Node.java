@@ -23,6 +23,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
+import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
@@ -348,7 +349,7 @@ public class Node {
 		return ipAddress;
 	}
 
-	public void connectToServer(String masterServerURL, String clusterPassword) {
+	public Errno connectToServer(String masterServerURL, String clusterPassword) {
 		conf.set("cluster.password", clusterPassword);
 		this.clusterPassword = clusterPassword;
 		try {
@@ -367,6 +368,7 @@ public class Node {
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception with master server url");
 		}
+		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 
 	public void getNewNode(String newNodeURL) {
