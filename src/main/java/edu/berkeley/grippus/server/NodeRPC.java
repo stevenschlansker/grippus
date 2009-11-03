@@ -24,12 +24,12 @@ public interface NodeRPC {
 	/** Sends this NodeRPC an update that the joiner node is joining the cluster. Idempotent.
 	 *  Should only be called by the MasterNode to a slave. 
 	 */
-	boolean advertiseJoiningNode(NodeRPC joiner);
+	boolean advertiseJoiningNode(String joinerURL);
 	
 	/** Sends this NodeRPC an update that the leaver node is leaving the cluster. Idempotent.
 	 *  Should only be called by the MasterNode to a slave. 
 	 */
-	boolean advertiseLeavingNode(NodeRPC leaver);
+	boolean advertiseLeavingNode(String leaverURL);
 	
 	
 	
