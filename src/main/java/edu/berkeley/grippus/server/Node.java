@@ -56,6 +56,7 @@ public class Node {
 	private static Node thisNode;
 
 	private NodeState state = NodeState.DISCONNECTED;
+	private String clusterPassword;
 
 	public Node(String name) {
 		if (thisNode != null)
@@ -346,13 +347,10 @@ public class Node {
 	public String getIpAddress() {
 		return ipAddress;
 	}
-	
-	public synchronized void connectToMaster(String masterURL, String clusterPassword) {
-		this.connectToServer(masterURL, clusterPassword);
-	}
 
 	public void connectToServer(String masterServerURL, String clusterPassword) {
 		conf.set("cluster.password", clusterPassword);
+		this.clusterPassword = clusterPassword;
 		try {
 			HessianProxyFactory factory = new HessianProxyFactory();	
 			factory.setUser("grippus");
@@ -370,12 +368,12 @@ public class Node {
 			logger.error("Malformed URL exception with master server url");
 		}
 	}
-	 
+
 	public void getNewNode(String newNodeURL) {
 		try {
 			HessianProxyFactory factory = new HessianProxyFactory();
 			factory.setUser("grippus");
-			factory.setPassword("password");
+			factory.setPassword(clusterPassword);
 			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
 			if (this.isMaster()) {
 				for (String nodeURL : this.getClusterMembers().keySet()) {

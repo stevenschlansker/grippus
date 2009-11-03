@@ -68,6 +68,6 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	}
 	
 	public void connectToNetwork(String cmd, String masterURL, String clusterPassword) {
-		managedNode.connectToMaster(masterURL, clusterPassword);
+		managedNode.connectToServer(masterURL, clusterPassword);
 	}
 }
