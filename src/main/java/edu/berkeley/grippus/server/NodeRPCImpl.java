@@ -60,7 +60,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 			logger.warn("Tried to leave non-master Node");
 			return false;
 		}
-		return myNode.removeNodeAsMaster(leaverURL);	
+		return myNode.removeNodeAsMaster(leaverURL);
 	}
 
 	/*** 
