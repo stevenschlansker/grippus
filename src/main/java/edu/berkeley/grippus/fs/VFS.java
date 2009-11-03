@@ -5,7 +5,7 @@ import java.util.Map;
 import edu.berkeley.grippus.Errno;
 
 public class VFS {
-	private DFile root = new VirtualDFile("%ROOT%", null);
+	private DFile root = new RootDFile();
 
 	public Map<String, DFile> ls(DFile cwd) {
 		return cwd.getChildren();

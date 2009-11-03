@@ -14,6 +14,17 @@ public class VirtualDFile extends DFile {
 	public VirtualDFile(String name, DFile parent) {
 		super(name);
 		this.parent = parent;
+		initializeChildren(parent);
+	}
+
+	protected VirtualDFile(String name) {
+		/* for RootDFile's use, don't specify a parent */
+		super(name);
+		this.parent = this;
+		initializeChildren(parent);
+	}
+
+	private void initializeChildren(DFile parent) {
 		getChildren().put("..", parent);
 		getChildren().put(".", this);
 	}
