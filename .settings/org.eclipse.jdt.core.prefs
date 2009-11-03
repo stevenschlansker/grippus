@@ -1,4 +1,8 @@
+<<<<<<< HEAD:.settings/org.eclipse.jdt.core.prefs
+#Tue Oct 27 22:04:28 PDT 2009
+=======
 #Tue Oct 27 17:23:33 PDT 2009
+>>>>>>> 9af8dfb15d8cfb789f882704108cc7c6d2251b44:.settings/org.eclipse.jdt.core.prefs
 eclipse.preferences.version=1
 org.eclipse.jdt.core.compiler.codegen.inlineJsrBytecode=enabled
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.6

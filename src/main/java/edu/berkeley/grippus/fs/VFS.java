@@ -3,6 +3,7 @@ package edu.berkeley.grippus.fs;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.server.DPassthroughMount;
 
 public class VFS {
 	private DFile root = new RootDFile();
@@ -24,11 +25,12 @@ public class VFS {
 		return path;
 	}
 
-	public Errno mount(DFileSpec where, DMount newMount) {
+	public Errno mount(DFileSpec where, String realPath) {
 		DFile oldEntry = find(where);
 		DFile oldParent = find(where.upOneLevel());
 		if (!oldEntry.isDirectory() || oldEntry.getChildren().size() > 2)
 			return Errno.ERROR_ILLEGAL_ARGUMENT;
+		DMount newMount = new DPassthroughMount(where, realPath, oldParent);
 		return oldParent.replaceEntry(oldEntry, newMount);
 	}
 }

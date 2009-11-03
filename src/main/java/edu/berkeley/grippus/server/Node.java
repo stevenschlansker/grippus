@@ -3,6 +3,7 @@ package edu.berkeley.grippus.server;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -39,9 +40,11 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
+	private NodeRPC master;
 	private String ipAddress;
 
 	private final VFS vfs = new VFS();
+	private final HessianProxyFactory factory = new HessianProxyFactory();
 
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
 	private final HashMap<NodeRPC,String> clusterURLs = new HashMap<NodeRPC,String>();
@@ -209,8 +212,16 @@ public class Node {
 		setClusterID(UUID.randomUUID());
 		return true;
 	}
-
+	
+	/** Contacts the master node if it exists and removes self from the
+	 * canonical cluster member list. Sets master to null, clears the local
+	 * cluster list and sets the state to DISCONNECTED.
+	 */
 	public synchronized void disconnect() {
+		if(master!= null){
+			master.leaveCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
+		}
+		master = null;
 		setClusterID(null);
 		setClusterName(null);
 		getClusterMembers().clear();
@@ -265,9 +276,40 @@ public class Node {
 		return vfs;
 	}
 
+	/** Method creates a NodeRPC based on the given url, and contacts it for 
+	 * its master NodeRPC. The Master is then sent a join request, and this 
+	 * nodes clusterSet and master are updated accordingly.
+	 * 
+	 * Cannot be called if Node is currently a master.
+	 * 
+	 * @param url
+	 * @throws MalformedURLException 
+	 */
+	public synchronized void joinNode(String url) throws MalformedURLException{
+		if( state == NodeState.MASTER) {
+			logger.warn("cannot join another network if master");
+			return;
+		}
+		NodeRPC target =  (NodeRPC) factory.create(NodeRPC.class, url);
+		String masterURL = target.getMaster();
+		disconnect();
+		master = (NodeRPC) factory.create(NodeRPC.class, masterURL);
+		master.joinCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
+		HashSet<String> members = master.getClusterList();
+		for( String member: members){
+			clusterMembers.add((NodeRPC) factory.create(NodeRPC.class, member));
+		}
+		state = NodeState.SLAVE;
+	}
+	
 	public static Node getNode() {
 		return thisNode;
 	}
+	
+	public NodeRPC getMaster(){
+		return master;
+	}
+
 
 	public void setIpAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
