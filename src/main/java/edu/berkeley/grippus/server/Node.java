@@ -28,6 +28,7 @@ import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Node {
+	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
 
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Node.class);
@@ -202,10 +203,13 @@ public class Node {
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
 			result += "Advertise url: "+this.myNodeURL;
+		if (state == NodeState.SLAVE || state == NodeState.MASTER) {
+			result += "Cluster members:\n";
+			for (String name : getClusterMembers().keySet())
+				result += "\t" + name + "\n";
+		}
 		return result;
 	}
-	
-	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
 
 	public synchronized boolean initCluster(String clusterName) {
 		disconnect();
