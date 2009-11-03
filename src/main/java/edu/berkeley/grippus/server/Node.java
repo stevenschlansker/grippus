@@ -317,12 +317,14 @@ public class Node {
 		HashSet<String> masterMembers = masterServer.getClusterList();
 		for(String key : clusterMembers.keySet()){
 			if(!masterMembers.contains(key)){
+				if(key== getMasterURL()) continue;
 				clusterMembers.remove(key);
 			}
 		}
 		try {
 			for(String m_key : masterMembers){
-				if(!clusterMembers.containsKey(m_key)){				
+				if(!clusterMembers.containsKey(m_key)){	
+						if(m_key == getNodeURL()) continue;
 						clusterMembers.put(m_key, (NodeRPC) factory.create(NodeRPC.class, m_key));				
 				}
 			}
@@ -361,6 +363,10 @@ public class Node {
 	
 	public static Node getNode() {
 		return thisNode;
+	}
+	
+	public String getNodeURL(){
+		return "http://"+ getIpAddress()+":"+getPort()+"/node";
 	}
 	
 	public NodeRPC getMaster(){
