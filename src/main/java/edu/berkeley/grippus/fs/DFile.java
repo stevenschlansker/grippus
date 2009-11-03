@@ -49,7 +49,7 @@ public abstract class DFile {
 	protected boolean nameValid(String name) {
 		return name.matches("[a-zA-Z_][a-zA-Z_0-9]+");
 	}
-	
+
 	@Override
 	public String toString() {
 		return name;
