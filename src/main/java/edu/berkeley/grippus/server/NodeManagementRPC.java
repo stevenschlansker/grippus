@@ -13,5 +13,6 @@ public interface NodeManagementRPC {
 	public String ls(String cmd, DFileSpec path);
 	public Errno mkdir(String cmd, DFileSpec dir);
 	public DFileSpec canonicalizePath(DFileSpec append);
+	public Errno mount(String cmd, String realPath, String vPath);
 
 }

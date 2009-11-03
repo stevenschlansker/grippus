@@ -62,4 +62,10 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public DFileSpec canonicalizePath(DFileSpec path) {
 		return managedNode.getVFS().canonicalize(path);
 	}
+
+	@Override
+	public Errno mount(String cmd, String realPath, String vPath) {
+		DFileSpec dfs = new DFileSpec(vPath);
+		return managedNode.getVFS().mount(dfs, new DPassthroughMount(dfs));
+	}
 }

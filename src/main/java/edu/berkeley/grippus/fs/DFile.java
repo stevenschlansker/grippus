@@ -26,6 +26,7 @@ public abstract class DFile {
 	}
 
 	private DFile find(List<String> pathbits) {
+		if (pathbits.isEmpty()) return this;
 		final String first = pathbits.get(0);
 		if (pathbits.isEmpty()) return this;
 		if (first.isEmpty() || first.equals("."))
@@ -60,4 +61,8 @@ public abstract class DFile {
 
 	/** On a directory, create the named child */
 	public abstract Errno mkdir(String name);
+
+	public abstract boolean isDirectory();
+
+	public abstract Errno replaceEntry(DFile oldEntry, DMount newMount);
 }

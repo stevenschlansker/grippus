@@ -40,4 +40,11 @@ public class DFileSpec implements Serializable {
 		return new DFileSpec(path + "/" + dirname);
 	}
 
+	public String name() {
+		return path.substring(path.lastIndexOf('/')+1);
+	}
+
+	public DFileSpec upOneLevel() {
+		return new DFileSpec(path.substring(0, path.lastIndexOf('/')+1));
+	}
 }
