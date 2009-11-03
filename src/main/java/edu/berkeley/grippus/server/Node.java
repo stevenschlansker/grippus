@@ -45,18 +45,13 @@ public class Node {
 	private final HessianProxyFactory factory = new HessianProxyFactory();
 
 	private final HashMap<String, NodeRPC> clusterMembers = new HashMap<String, NodeRPC>();
-	
-	private String masterURL = null;
 
-	private static Node thisNode;
+	private String masterURL = null;
 
 	private NodeState state = NodeState.DISCONNECTED;
 	private String clusterPassword;
 
 	public Node(String name) {
-		if (thisNode != null)
-			throw new RuntimeException("Already made a node here... static for now (I know this is bad!)");
-		thisNode = this;
 		this.name = name;
 		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
 		if (!serverRoot.exists()) serverRoot.mkdirs();
@@ -146,8 +141,8 @@ public class Node {
 		sh.setLoginService(new HashLoginService("grippus", tempFile.getAbsolutePath()));
 		context.setSecurityHandler(sh);*/
 		context.setContextPath("/");
+		context.setAttribute("node", this);
 		context.addServlet(NodeRPCImpl.class, "/node/*");
-		NodeManagementRPCImpl.managedNode = this;
 		context.addServlet(NodeManagementRPCImpl.class, "/mgmt/*");
 		jetty.setHandler(context);
 	}
@@ -357,12 +352,7 @@ public class Node {
 			clusterMembers.remove(url);
 		}
 	}
-	
-	
-	public static Node getNode() {
-		return thisNode;
-	}
-	
+
 	public NodeRPC getMaster(){
 		return masterServer;
 	}
