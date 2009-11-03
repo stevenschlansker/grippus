@@ -1,12 +1,8 @@
 package edu.berkeley.grippus.server;
 
-import java.net.MalformedURLException;
 import java.util.HashSet;
-import java.util.UUID;
-
 import org.apache.log4j.Logger;
 
-import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.server.HessianServlet;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
