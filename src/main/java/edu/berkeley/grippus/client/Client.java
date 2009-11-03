@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
-import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
 import edu.berkeley.grippus.util.Logging;
@@ -99,21 +99,29 @@ public class Client {
 			logger.error("Invocation target exception", e);
 		}
 	}
-	
+
 	private void handleResult(Object result) {
 		if (result != null) System.out.println(result);
-		if (Result.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
+		if (Errno.SUCCESS_TOPOLOGY_CHANGE.equals(result)) executeCommand(node, "status");
+	}
+
+	public void cd(String cmd, String dir) {
+		cwd = node.canonicalizePath(cwd.append(dir));
 	}
 
 	public DFileSpec pwd(String cmd) {
 		return cwd;
 	}
-	
-	public void ls(String cmd) {
-		executeCommand(node, cmd, cwd);
+
+	public String ls(String cmd) {
+		return node.ls(cmd, cwd);
 	}
-	
-	public void mkdir(String cmd, String dirname) {
-		executeCommand(node, cmd, cwd.find(dirname));
+
+	public String ls(String cmd, String target) {
+		return node.ls(cmd, new DFileSpec(cwd + "/" + target));
+	}
+
+	public Errno mkdir(String cmd, String dirname) {
+		return node.mkdir(cmd, cwd.append(dirname));
 	}
 }

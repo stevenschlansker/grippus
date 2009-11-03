@@ -3,7 +3,7 @@ package edu.berkeley.grippus.server;
 import com.caucho.hessian.server.HessianServlet;
 import java.util.UUID;
 
-import edu.berkeley.grippus.Result;
+import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.VFS;
@@ -31,9 +31,9 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	}
 
 	@Override
-	public Result initCluster(String cmd, String clusterName) {
+	public Errno initCluster(String cmd, String clusterName) {
 		managedNode.initCluster(clusterName);
-		return Result.SUCCESS_TOPOLOGY_CHANGE;
+		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 
 	@Override
@@ -47,15 +47,27 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 		VFS vfs = managedNode.getVFS();
 		StringBuilder result = new StringBuilder();
 		result.append(path+":\n");
-		for (DFile f : vfs.ls(vfs.resolve(path)).values()) {
+		for (String f : vfs.ls(vfs.resolve(path)).keySet()) {
 			result.append(f);
+			result.append("\n");
 		}
 		return result.toString();
 	}
 
 	@Override
-	public Result mkdir(String cmd, DFileSpec dir) {
-		return Result.ERROR_EXISTS;
+	public Errno mkdir(String cmd, DFileSpec dir) {
+		return managedNode.getVFS().find(dir).mkdir();
+	}
+
+	@Override
+	public DFileSpec canonicalizePath(DFileSpec path) {
+		return managedNode.getVFS().canonicalize(path);
+	}
+
+	@Override
+	public Errno mount(String cmd, String realPath, String vPath) {
+		DFileSpec dfs = new DFileSpec(vPath);
+		return managedNode.getVFS().mount(dfs, new DPassthroughMount(dfs));
 	}
 	
 	public void connectToNetwork(String cmd, String masterURL) {
