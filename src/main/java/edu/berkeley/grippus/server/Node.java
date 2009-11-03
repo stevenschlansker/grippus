@@ -19,6 +19,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import com.caucho.hessian.client.HessianProxyFactory;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
@@ -404,5 +405,9 @@ public class Node {
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception for new node URL");
 		}
+	}
+
+	public Errno share(DFileSpec dfs, String realPath) {
+		throw new AssertionError("Not implemented");
 	}
 }

@@ -83,6 +83,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 
 	@Override
 	public Errno share(String cmd, String realPath, String vPath) {
-		throw new AssertionError("Not implemented!");
+		DFileSpec dfs = new DFileSpec(vPath);
+		return managedNode.share(dfs, realPath);
 	}
 }
