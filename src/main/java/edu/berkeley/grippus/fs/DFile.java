@@ -8,17 +8,13 @@ import edu.berkeley.grippus.Errno;
 
 public abstract class DFile {
 
-	private Map<String, DFile> children = new HashMap<String, DFile>();
-
 	private final String name;
 
 	public DFile(String name) {
 		this.name = name;
 	}
 
-	public Map<String, DFile> getChildren() {
-		return children;
-	}
+	public abstract Map<String, DFile> getChildren();
 
 	public DFile find(DFileSpec path) {
 		return find(path.getPath());

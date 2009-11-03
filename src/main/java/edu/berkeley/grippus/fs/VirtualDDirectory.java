@@ -7,7 +7,7 @@ import com.google.common.collect.Collections2;
 
 import edu.berkeley.grippus.Errno;
 
-public class VirtualDDirectory extends DFile {
+public class VirtualDDirectory extends VirtualDFile {
 	
 	private final DFile parent;
 	

@@ -2,7 +2,7 @@ package edu.berkeley.grippus.fs;
 
 import edu.berkeley.grippus.Errno;
 
-public class DirectoryPlaceholderDFile extends DFile {
+public class DirectoryPlaceholderDFile extends VirtualDFile {
 	
 	private final DFile parent;
 	private final String name;
