@@ -42,6 +42,7 @@ public class Node {
 	private final int port;
 	private NodeRPC master;
 	private String ipAddress;
+	private String myNodeURL;
 
 	private final VFS vfs = new VFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
@@ -75,6 +76,7 @@ public class Node {
 		try {
 			InetAddress thisIp = InetAddress.getLocalHost();
 	    	this.setIpAddress(thisIp.getHostAddress());
+	    	this.myNodeURL = "http://"+ getIpAddress()+":"+getPort()+"/node";
 		} catch (UnknownHostException e) {
 			logger.error("Unknown host ");
 		}
@@ -199,7 +201,7 @@ public class Node {
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
-			result += "Advertise url: http://"+this.getIpAddress()+":"+port+"/node";
+			result += "Advertise url: "+this.myNodeURL;
 		return result;
 	}
 	
@@ -219,7 +221,7 @@ public class Node {
 	 */
 	public synchronized void disconnect() {
 		if(master!= null){
-			master.leaveCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
+			master.leaveCluster(this.myNodeURL);
 		}
 		master = null;
 		setClusterID(null);
@@ -310,7 +312,6 @@ public class Node {
 		return master;
 	}
 
-
 	public void setIpAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
 	}
@@ -332,8 +333,8 @@ public class Node {
 			this.setMasterServer(master);
 			this.setMasterURL(masterServerURL);
 			this.setClusterName(master.getMasterClusterName());
-			byte[] blah = master.getMasterClusterUUID().getBytes();
-			UUID clusterID = UUID.nameUUIDFromBytes(blah);
+			String clusterUUIDString = master.getMasterClusterUUID();
+			UUID clusterID = UUID.fromString(clusterUUIDString);
 			this.setClusterID(clusterID);
 			String nodeURL = "http://"+this.getIpAddress()+":"+String.valueOf(this.getPort())+"/node";
 			this.getMasterServer().getNewNode(nodeURL);
@@ -341,7 +342,7 @@ public class Node {
 			logger.error("Malformed URL exception with master server url");
 		}
 	}
-	
+	 
 	public void getNewNode(String newNodeURL) {
 		try {
 			HessianProxyFactory factory = new HessianProxyFactory();
