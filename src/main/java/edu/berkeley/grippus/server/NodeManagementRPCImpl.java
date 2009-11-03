@@ -64,7 +64,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	@Override
 	public Errno mount(String cmd, String realPath, String vPath) {
 		DFileSpec dfs = new DFileSpec(vPath);
-		return managedNode.getVFS().mount(dfs, new DPassthroughMount(dfs));
+		return managedNode.getVFS().mount(dfs, new DPassthroughMount(dfs, realPath));
 	}
 	
 	public void connectToNetwork(String cmd, String masterURL) {
