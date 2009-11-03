@@ -329,15 +329,16 @@ public class Node {
 		return ipAddress;
 	}
 	
-	public synchronized void connectToMaster(String masterURL) {
-		this.connectToServer(masterURL);
+	public synchronized void connectToMaster(String masterURL, String clusterPassword) {
+		this.connectToServer(masterURL, clusterPassword);
 	}
 
-	public void connectToServer(String masterServerURL) {
+	public void connectToServer(String masterServerURL, String clusterPassword) {
+		conf.set("cluster.password", clusterPassword);
 		try {
 			HessianProxyFactory factory = new HessianProxyFactory();	
 			factory.setUser("grippus");
-			factory.setPassword("password");
+			factory.setPassword(clusterPassword);
 			NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterServerURL);
 			this.setMasterServer(master);
 			this.setMasterURL(masterServerURL);
