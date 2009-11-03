@@ -374,13 +374,12 @@ public class Node {
 			factory.setPassword("password");
 			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
 			if (this.isMaster()) {
-				for (NodeRPC node : this.getClusterMembers().values()) {
-					node.getNewNode(newNodeURL);
-					newNode.getNewNode(this.getClusterURLs().get(node));
+				for (String nodeURL : this.getClusterMembers().keySet()) {
+					this.clusterMembers.get(nodeURL).getNewNode(newNodeURL);
+					newNode.getNewNode(nodeURL);
 				}
 			}
-			this.getClusterMembers().add(newNode);
-			this.getClusterURLs().put(newNode, newNodeURL);
+			this.clusterMembers.put(newNodeURL,newNode);
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception for new node URL");
 		}
