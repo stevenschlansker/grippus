@@ -1,6 +1,7 @@
 package edu.berkeley.grippus.server;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
@@ -10,12 +11,13 @@ import edu.berkeley.grippus.fs.DMount;
 
 public class DPassthroughMount extends DMount {
 
-	private PassthroughFile root;
+	private final PassthroughFile root;
 	private final File mountedDirectory;
 	
-	public DPassthroughMount(DFileSpec dfs, String basePath) {
+	public DPassthroughMount(DFileSpec dfs, String basePath, DFile parent) {
 		super(dfs.name());
 		mountedDirectory = new File(basePath);
+		root = new PassthroughFile(dfs.name(), mountedDirectory, parent);
 	}
 
 	@Override
@@ -45,9 +47,11 @@ public class DPassthroughMount extends DMount {
 	
 	private class PassthroughFile extends DFile {
 		private final File me;
-		public PassthroughFile(String name, File whoIAm) {
+		private final DFile parent;
+		public PassthroughFile(String name, File whoIAm, DFile parent) {
 			super(name);
 			me = whoIAm;
+			this.parent = parent;
 		}
 		@Override public boolean isDirectory() {
 			return me.isDirectory();
@@ -64,9 +68,13 @@ public class DPassthroughMount extends DMount {
 
 		@Override
 		public Map<String, DFile> getChildren() {
-			// TODO Auto-generated method stub
-			return null;
+			Map<String, DFile> result = new HashMap<String, DFile>();
+			for (String child : me.list()) {
+				result.put(child, new PassthroughFile(child, new File(me, child), this));
+			}
+			result.put(".", this);
+			result.put("..", parent);
+			return result;
 		}
-
 	}
 }
