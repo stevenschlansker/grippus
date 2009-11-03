@@ -3,6 +3,7 @@ package edu.berkeley.grippus.server;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +18,8 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+
+import com.caucho.hessian.client.HessianProxyFactory;
 
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
@@ -35,8 +38,9 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
-
+	private NodeRPC master;
 	private final VFS vfs = new VFS();
+	private final HessianProxyFactory factory = new HessianProxyFactory();
 
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
 
@@ -199,7 +203,33 @@ public class Node {
 		return vfs;
 	}
 
+	/** Method creates a NodeRPC based on the given url, and contacts it for 
+	 * its master NodeRPC. The Master is then sent a join request, and this 
+	 * nodes clusterSet and master are updated accordingly.
+	 * 
+	 * Cannot be called if Node is currently a master.
+	 * 
+	 * @param url
+	 * @throws MalformedURLException 
+	 */
+	public void joinNode(String url) throws MalformedURLException{
+		if( state == NodeState.MASTER) {
+			logger.warn("cannot join another network if master");
+			return;
+		}
+		disconnect();
+		NodeRPC target =  (NodeRPC) factory.create(NodeRPC.class, url);
+		String masterURL = target.getMaster();
+		NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterURL);
+		
+	}
+	
+	
 	public static Node getNode() {
 		return thisNode;
+	}
+	
+	public NodeRPC getMaster(){
+		return master;
 	}
 }
