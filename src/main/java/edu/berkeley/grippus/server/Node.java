@@ -37,7 +37,7 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
-	private NodeRPC master;
+	private NodeRPC masterServer;
 	private String ipAddress;
 	private String myNodeURL;
 
@@ -46,7 +46,6 @@ public class Node {
 
 	private final HashMap<String, NodeRPC> clusterMembers = new HashMap<String, NodeRPC>();
 	
-	private NodeRPC masterServer = null;
 	private String masterURL = null;
 
 	private static Node thisNode;
@@ -216,7 +215,7 @@ public class Node {
 		disconnect();
 		state = NodeState.MASTER;
 		try{
-		master = (NodeRPC) factory.create(NodeRPC.class, "http://"+ getIpAddress()+":"+getPort()+"/node");
+		masterServer = (NodeRPC) factory.create(NodeRPC.class, "http://"+ getIpAddress()+":"+getPort()+"/node");
 		} catch( MalformedURLException e){
 			logger.error("Nodes own URL does not work as a valid URL for making the master node");
 		}
@@ -230,10 +229,10 @@ public class Node {
 	 * cluster list and sets the state to DISCONNECTED.
 	 */
 	public synchronized void disconnect() {
-		if(master!= null){
-			master.leaveCluster(this.myNodeURL);
+		if(masterServer!= null){
+			masterServer.leaveCluster(this.myNodeURL);
 		}
-		master = null;
+		masterServer = null;
 		masterURL = null;
 		setClusterID(null);
 		setClusterName(null);
@@ -302,9 +301,9 @@ public class Node {
 		NodeRPC target =  (NodeRPC) factory.create(NodeRPC.class, url);
 		String masterURL = target.getMaster();
 		disconnect();
-		master = (NodeRPC) factory.create(NodeRPC.class, masterURL);
-		master.joinCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
-		HashSet<String> members = master.getClusterList();
+		masterServer = (NodeRPC) factory.create(NodeRPC.class, masterURL);
+		masterServer.joinCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
+		HashSet<String> members = masterServer.getClusterList();
 		for( String member: members){
 			clusterMembers.put(member, (NodeRPC) factory.create(NodeRPC.class, member));
 		}
@@ -315,7 +314,7 @@ public class Node {
 	 *  our own; removes any excess and adds any unlisted.
 	 */
 	public void checkClusterMembers(){
-		HashSet<String> masterMembers = master.getClusterList();
+		HashSet<String> masterMembers = masterServer.getClusterList();
 		for(String key : clusterMembers.keySet()){
 			if(!masterMembers.contains(key)){
 				clusterMembers.remove(key);
@@ -365,7 +364,7 @@ public class Node {
 	}
 	
 	public NodeRPC getMaster(){
-		return master;
+		return masterServer;
 	}
 
 	public void setIpAddress(String ipAddress) {
