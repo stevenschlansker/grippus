@@ -309,7 +309,21 @@ public class Node {
 	 * @return
 	 */
 	public void checkClusterMembers(){
-		HashSet
+		HashSet<String> masterMembers = master.getClusterList();
+		for(String key : clusterMembers.keySet()){
+			if(!masterMembers.contains(key)){
+				clusterMembers.remove(key);
+			}
+		}
+		try {
+			for(String m_key : masterMembers){
+				if(!clusterMembers.containsKey(m_key)){				
+						clusterMembers.put(m_key, (NodeRPC) factory.create(NodeRPC.class, m_key));				
+				}
+			}
+		} catch (MalformedURLException e) {
+			logger.error("badly formed URL", e);
+		}
 	}
 	
 	public static Node getNode() {
@@ -359,7 +373,7 @@ public class Node {
 			factory.setPassword("password");
 			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
 			if (this.isMaster()) {
-				for (NodeRPC node : this.getClusterMembers()) {
+				for (NodeRPC node : this.getClusterMembers().values()) {
 					node.getNewNode(newNodeURL);
 					newNode.getNewNode(this.getClusterURLs().get(node));
 				}
