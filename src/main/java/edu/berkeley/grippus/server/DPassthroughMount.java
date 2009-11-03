@@ -18,8 +18,7 @@ public class DPassthroughMount extends DMount {
 
 	@Override
 	public Errno mkdir(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return Errno.ERROR_READ_ONLY;
 	}
 
 	@Override
