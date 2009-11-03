@@ -1,10 +1,7 @@
 package edu.berkeley.grippus.server;
 
 import com.caucho.hessian.server.HessianServlet;
-import java.util.UUID;
-
 import edu.berkeley.grippus.Errno;
-import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.VFS;
 
@@ -67,7 +64,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	@Override
 	public Errno mount(String cmd, String realPath, String vPath) {
 		DFileSpec dfs = new DFileSpec(vPath);
-		return managedNode.getVFS().mount(dfs, new DPassthroughMount(dfs));
+		return managedNode.getVFS().mount(dfs, realPath);
 	}
 	
 	public void connectToNetwork(String cmd, String masterURL) {

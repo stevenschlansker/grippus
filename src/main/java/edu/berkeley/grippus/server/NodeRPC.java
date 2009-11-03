@@ -1,7 +1,5 @@
 package edu.berkeley.grippus.server;
-
 import java.util.HashSet;
-import java.util.UUID;
 
 public interface NodeRPC {
 
