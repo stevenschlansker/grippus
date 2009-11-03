@@ -1,7 +1,6 @@
 package edu.berkeley.grippus.server;
 
 import java.util.HashSet;
-import java.util.Set;
 import org.apache.log4j.Logger;
 
 import com.caucho.hessian.server.HessianServlet;
