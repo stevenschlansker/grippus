@@ -20,6 +20,8 @@ import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
+import com.caucho.hessian.client.HessianProxyFactory;
+
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
@@ -38,7 +40,6 @@ public class Node {
 	private String clusterName;
 	private final int port;
 	private String ipAddress;
-	private NodeRPCImpl myNodeRPC = new NodeRPCImpl();
 
 	private final VFS vfs = new VFS();
 
@@ -72,7 +73,7 @@ public class Node {
 			InetAddress thisIp = InetAddress.getLocalHost();
 	    	this.setIpAddress(thisIp.getHostAddress());
 		} catch (UnknownHostException e) {
-			
+			logger.error("Unknown host ");
 		}
 	}
 	
@@ -277,6 +278,44 @@ public class Node {
 	}
 	
 	public synchronized void connectToMaster(String masterURL) {
-		this.myNodeRPC.connectToServer(masterURL);
+		this.connectToServer(masterURL);
+	}
+
+	public void connectToServer(String masterServerURL) {
+		try {
+			HessianProxyFactory factory = new HessianProxyFactory();	
+			factory.setUser("grippus");
+			factory.setPassword("password");
+			NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterServerURL);
+			this.setMasterServer(master);
+			this.setMasterURL(masterServerURL);
+			this.setClusterName(master.getMasterClusterName());
+			byte[] blah = master.getMasterClusterUUID().getBytes();
+			UUID clusterID = UUID.nameUUIDFromBytes(blah);
+			this.setClusterID(clusterID);
+			String nodeURL = "http://"+this.getIpAddress()+":"+String.valueOf(this.getPort())+"/node";
+			this.getMasterServer().getNewNode(nodeURL);
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL exception with master server url");
+		}
+	}
+	
+	public void getNewNode(String newNodeURL) {
+		try {
+			HessianProxyFactory factory = new HessianProxyFactory();
+			factory.setUser("grippus");
+			factory.setPassword("password");
+			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+			if (this.isMaster()) {
+				for (NodeRPC node : this.getClusterMembers()) {
+					node.getNewNode(newNodeURL);
+					newNode.getNewNode(this.getClusterURLs().get(node));
+				}
+			}
+			this.getClusterMembers().add(newNode);
+			this.getClusterURLs().put(newNode, newNodeURL);
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL exception for new node URL");
+		}
 	}
 }
