@@ -207,7 +207,8 @@ public class Node {
 		return result;
 	}
 
-	public synchronized boolean initCluster(String clusterName) {
+	public synchronized Errno initCluster(String clusterName) {
+		if (state != NodeState.DISCONNECTED) return Errno.ERROR_ILLEGAL_ACTION;
 		disconnect();
 		state = NodeState.MASTER;
 		try{
@@ -217,7 +218,7 @@ public class Node {
 		}
 		this.setClusterName(clusterName);
 		setClusterID(UUID.randomUUID());
-		return true;
+		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 	
 	/** Contacts the master node if it exists and removes self from the
@@ -367,6 +368,7 @@ public class Node {
 	}
 
 	public Errno connectToServer(String masterServerURL, String clusterPassword) {
+		if (state != NodeState.DISCONNECTED) return Errno.ERROR_ILLEGAL_ACTION;
 		conf.set("cluster.password", clusterPassword);
 		this.clusterPassword = clusterPassword;
 		try {

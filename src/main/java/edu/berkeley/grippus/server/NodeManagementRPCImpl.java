@@ -39,8 +39,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 
 	@Override
 	public Errno initCluster(String cmd, String clusterName) {
-		managedNode.initCluster(clusterName);
-		return Errno.SUCCESS_TOPOLOGY_CHANGE;
+		return managedNode.initCluster(clusterName);
 	}
 
 	@Override
