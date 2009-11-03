@@ -1,12 +1,10 @@
 package edu.berkeley.grippus.server;
 
-import java.net.MalformedURLException;
 import java.util.HashSet;
-import java.util.UUID;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.server.HessianServlet;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
@@ -18,27 +16,25 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	public NodeRPCImpl() { /* nothing */ }
 
 	@Override
-	public boolean advertiseJoiningNode(NodeRPC joiner) {
+	public boolean advertiseJoiningNode(String joinerURL) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean advertiseLeavingNode(NodeRPC leaver) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean advertiseLeavingNode(String leaverURL) {
+		myNode.removeNodeLocal(leaverURL);
+		return true;
 	}
 
 	@Override
 	public HashSet<String> getClusterList() {
-		// TODO Auto-generated method stub
-		return null;
+		return (HashSet<String>) myNode.getClusterURLS();
 	}
 
 	@Override
 	public String getMaster() {
-		// TODO Auto-generated method stub
-		return null;
+		return myNode.getMasterURL();
 	}
 
 	@Override
@@ -48,9 +44,12 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	}
 
 	@Override
-	public boolean leaveCluster(String myURL) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean leaveCluster(String leaverURL) {
+		if(!myNode.isMaster()){
+			logger.warn("Tried to leave non-master Node");
+			return false;
+		}
+		return myNode.removeNodeAsMaster(leaverURL);	
 	}
 
 	/*** 
