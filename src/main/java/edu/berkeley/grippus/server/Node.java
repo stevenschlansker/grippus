@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashMap;
+import java.net.*;
 
 import jline.ConsoleReader;
 
@@ -39,10 +41,17 @@ public class Node {
 	private String clusterName;
 	private final int port;
 	private NodeRPC master;
+	private String ipAddress;
+	private NodeRPCImpl myNodeRPC = new NodeRPCImpl();
+
 	private final VFS vfs = new VFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
 
 	private final Set<NodeRPC> clusterMembers = new HashSet<NodeRPC>();
+	private final HashMap<NodeRPC,String> clusterURLs = new HashMap<NodeRPC,String>();
+	
+	private NodeRPC masterServer = null;
+	private String masterURL = null;
 
 	private static Node thisNode;
 
@@ -60,13 +69,18 @@ public class Node {
 		conf = new Configuration(this, new File(serverRoot, "config"));
 		conf.set("node.name", name);
 		maybeInitializeConfig(conf);
-
 		bs = new BackingStore(this, new File(serverRoot, "store"));
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
 		port = Integer.parseInt(conf.getString("node.port", "11110"));
 		jetty = new Server(port);
+		try {
+			InetAddress thisIp = InetAddress.getLocalHost();
+	    	this.setIpAddress(thisIp.getHostAddress());
+		} catch (UnknownHostException e) {
+			
+		}
 	}
-
+	
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 		if (args.length < 1 || args[0] == null || args[0].isEmpty()) {
@@ -149,6 +163,7 @@ public class Node {
 			//maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
 			maybeInitialize(conf, inp, "mgmt.password", "Management password: ");
+			
 		} catch (IOException e) {
 			logger.error("Could not read from console; cannot configure, dying");
 			throw new RuntimeException("I/O problem", e);
@@ -172,13 +187,20 @@ public class Node {
 	public synchronized boolean addPeer(String string, int port) {
 		return false;
 	}
+	
+	public Boolean isMaster() {
+		if (state == NodeState.MASTER) {
+			return true;
+		}
+		return false;
+	}
 
 	public String status() {
 		String result = "Node " + name + ": " + state + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
-			result += "Advertise url: http://<external ip>:"+port+"/node";
+			result += "Advertise url: http://"+this.getIpAddress()+":"+port+"/node";
 		return result;
 	}
 	
@@ -187,16 +209,68 @@ public class Node {
 	public synchronized boolean initCluster(String clusterName) {
 		disconnect();
 		state = NodeState.MASTER;
-		this.clusterName = clusterName;
-		clusterID = UUID.randomUUID();
+		this.setClusterName(clusterName);
+		setClusterID(UUID.randomUUID());
 		return true;
 	}
-
+	
+	/** Contacts the master node if it exists and removes self from the
+	 * canonical cluster member list. Sets master to null, clears the local
+	 * cluster list and sets the state to DISCONNECTED.
+	 */
 	public synchronized void disconnect() {
-		clusterID = null;
-		clusterName = null;
-		clusterMembers.clear();
+		if(master!= null){
+			master.leaveCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
+		}
+		master = null;
+		setClusterID(null);
+		setClusterName(null);
+		getClusterMembers().clear();
 		state = NodeState.DISCONNECTED;
+	}
+
+	public Set<NodeRPC> getClusterMembers() {
+		return clusterMembers;
+	}
+
+	public HashMap<NodeRPC,String> getClusterURLs() {
+		return clusterURLs;
+	}
+
+	public void setMasterServer(NodeRPC masterServer) {
+		this.masterServer = masterServer;
+	}
+
+	public NodeRPC getMasterServer() {
+		return masterServer;
+	}
+
+	public void setMasterURL(String masterURL) {
+		this.masterURL = masterURL;
+	}
+
+	public String getMasterURL() {
+		return masterURL;
+	}
+
+	public void setClusterID(UUID clusterID) {
+		this.clusterID = clusterID;
+	}
+
+	public String getClusterID() {
+		return clusterID.toString();
+	}
+
+	public void setClusterName(String clusterName) {
+		this.clusterName = clusterName;
+	}
+
+	public String getClusterName() {
+		return clusterName;
+	}
+
+	public int getPort() {
+		return port;
 	}
 
 	public VFS getVFS() {
@@ -212,18 +286,22 @@ public class Node {
 	 * @param url
 	 * @throws MalformedURLException 
 	 */
-	public void joinNode(String url) throws MalformedURLException{
+	public synchronized void joinNode(String url) throws MalformedURLException{
 		if( state == NodeState.MASTER) {
 			logger.warn("cannot join another network if master");
 			return;
 		}
-		disconnect();
 		NodeRPC target =  (NodeRPC) factory.create(NodeRPC.class, url);
 		String masterURL = target.getMaster();
-		NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterURL);
-		
+		disconnect();
+		master = (NodeRPC) factory.create(NodeRPC.class, masterURL);
+		master.joinCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
+		HashSet<String> members = master.getClusterList();
+		for( String member: members){
+			clusterMembers.add((NodeRPC) factory.create(NodeRPC.class, member));
+		}
+		state = NodeState.SLAVE;
 	}
-	
 	
 	public static Node getNode() {
 		return thisNode;
@@ -231,5 +309,18 @@ public class Node {
 	
 	public NodeRPC getMaster(){
 		return master;
+	}
+
+
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
+
+	public String getIpAddress() {
+		return ipAddress;
+	}
+	
+	public synchronized void connectToMaster(String masterURL) {
+		this.myNodeRPC.connectToServer(masterURL);
 	}
 }
