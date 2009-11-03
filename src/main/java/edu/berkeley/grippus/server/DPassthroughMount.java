@@ -9,13 +9,11 @@ public class DPassthroughMount extends DMount {
 
 	public DPassthroughMount(DFileSpec dfs) {
 		super(dfs.name());
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public Errno mkdir() {
-		// TODO Auto-generated method stub
-		return null;
+		return Errno.ERROR_READ_ONLY;
 	}
 
 	@Override
