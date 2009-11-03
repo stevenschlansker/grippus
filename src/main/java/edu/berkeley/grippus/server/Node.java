@@ -3,12 +3,13 @@ package edu.berkeley.grippus.server;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.HashMap;
-import java.net.*;
 
 import jline.ConsoleReader;
 
@@ -42,7 +43,6 @@ public class Node {
 	private final int port;
 	private NodeRPC master;
 	private String ipAddress;
-	private NodeRPCImpl myNodeRPC = new NodeRPCImpl();
 
 	private final VFS vfs = new VFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
@@ -76,7 +76,8 @@ public class Node {
 			InetAddress thisIp = InetAddress.getLocalHost();
 	    	this.setIpAddress(thisIp.getHostAddress());
 		} catch (UnknownHostException e) {
-			
+			logger.error("Unknown host", e);
+			throw new RuntimeException("Node initialization fails", e);
 		}
 	}
 	
@@ -329,6 +330,44 @@ public class Node {
 	}
 	
 	public synchronized void connectToMaster(String masterURL) {
-		this.myNodeRPC.connectToServer(masterURL);
+		this.connectToServer(masterURL);
+	}
+
+	public void connectToServer(String masterServerURL) {
+		try {
+			HessianProxyFactory factory = new HessianProxyFactory();	
+			factory.setUser("grippus");
+			factory.setPassword("password");
+			NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterServerURL);
+			this.setMasterServer(master);
+			this.setMasterURL(masterServerURL);
+			this.setClusterName(master.getMasterClusterName());
+			byte[] blah = master.getMasterClusterUUID().getBytes();
+			UUID clusterID = UUID.nameUUIDFromBytes(blah);
+			this.setClusterID(clusterID);
+			String nodeURL = "http://"+this.getIpAddress()+":"+String.valueOf(this.getPort())+"/node";
+			this.getMasterServer().getNewNode(nodeURL);
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL exception with master server url");
+		}
+	}
+	
+	public void getNewNode(String newNodeURL) {
+		try {
+			HessianProxyFactory factory = new HessianProxyFactory();
+			factory.setUser("grippus");
+			factory.setPassword("password");
+			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+			if (this.isMaster()) {
+				for (NodeRPC node : this.getClusterMembers()) {
+					node.getNewNode(newNodeURL);
+					newNode.getNewNode(this.getClusterURLs().get(node));
+				}
+			}
+			this.getClusterMembers().add(newNode);
+			this.getClusterURLs().put(newNode, newNodeURL);
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL exception for new node URL");
+		}
 	}
 }
