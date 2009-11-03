@@ -78,6 +78,10 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 		} catch (MalformedURLException e) {
 			logger.error("Could not find host " + masterServerURL, e);
 		}
+		if (myNode == null) {
+			myNode = Node.getNode();
+		}
+		myNode.connectToServer(masterServerURL);
 	}
 	
 	/***
@@ -103,6 +107,10 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Bad URL", e);
 		}
+		if (myNode == null) {
+			myNode = Node.getNode();
+		}
+		myNode.getNewNode(newNodeURL);
 	}
 	
 	public String getMasterClusterName() {
