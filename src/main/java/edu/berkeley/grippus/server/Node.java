@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
-import java.util.HashMap;
 
 import jline.ConsoleReader;
 
@@ -78,6 +78,10 @@ public class Node {
 			logger.error("Unknown host", e);
 			throw new RuntimeException("Node initialization fails", e);
 		}
+	}
+	
+	HashSet<String> getClusterURLS(){
+		return (HashSet<String>) clusterMembers.keySet();
 	}
 	
 	public static void main(String[] args) {
@@ -199,11 +203,11 @@ public class Node {
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
-			result += "Advertise url: "+this.myNodeURL;
+			result += "Advertise url: " + this.myNodeURL + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER) {
-			result += "Cluster members:\n";
+			result += "Cluster members:";
 			for (String name : getClusterMembers().keySet())
-				result += "\t" + name + "\n";
+				result += "\n\t" + name + "";
 		}
 		return result;
 	}
@@ -327,6 +331,34 @@ public class Node {
 			logger.error("badly formed URL", e);
 		}
 	}
+	
+	/** Checks that Node is in fact the master of the cluster. If so,
+	 *  removes the leaving node from the clusterSet and informs all other
+	 *  members of the departure.
+	 */
+	protected synchronized boolean removeNodeAsMaster(String url){
+		if(state!= NodeState.MASTER){
+			logger.warn("non-master node called to remove a node form the cluster");
+			return false;
+		}
+		if( clusterMembers.containsKey(url)){
+			clusterMembers.remove(url);
+			for(NodeRPC member : clusterMembers.values()){
+				member.advertiseLeavingNode(url);
+			}
+		}
+		return true;
+	}
+	
+	/** This method should only be called by the master through the NodeRPC.
+	 *  It removes the departed NodeRPC from the local set.
+	 */
+	protected synchronized void removeNodeLocal(String url){
+		if(clusterMembers.containsKey(url)){
+			clusterMembers.remove(url);
+		}
+	}
+	
 	
 	public static Node getNode() {
 		return thisNode;
