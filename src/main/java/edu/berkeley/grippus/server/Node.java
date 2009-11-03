@@ -77,7 +77,7 @@ public class Node {
 			InetAddress thisIp = InetAddress.getLocalHost();
 	    	this.setIpAddress(thisIp.getHostAddress());
 		} catch (UnknownHostException e) {
-			
+			throw new RuntimeException("Node initialization fails", e);
 		}
 	}
 	
