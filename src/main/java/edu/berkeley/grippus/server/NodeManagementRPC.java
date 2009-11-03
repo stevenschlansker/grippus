@@ -12,5 +12,5 @@ public interface NodeManagementRPC {
 	public String disconnect(String cmd);
 	public String ls(String cmd, DFileSpec path);
 	public Result mkdir(String cmd, DFileSpec dir);
-
+	public void connectToNetwork(String cmd, String masterURL);
 }

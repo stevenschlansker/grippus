@@ -6,7 +6,7 @@ public interface NodeRPC {
 
 	public String getMasterClusterName();
 	
-	public UUID getMasterClusterUUID();
+	public String getMasterClusterUUID();
 	
 	public void getNewNode(String newNodeURL);
 }

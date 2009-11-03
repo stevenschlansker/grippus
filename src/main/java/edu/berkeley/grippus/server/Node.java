@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.HashMap;
+import java.net.*;
 
 import jline.ConsoleReader;
 
@@ -36,6 +37,8 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
+	private String ipAddress;
+	private NodeRPCImpl myNodeRPC = new NodeRPCImpl();
 
 	private final VFS vfs = new VFS();
 
@@ -65,6 +68,12 @@ public class Node {
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
 		port = Integer.parseInt(conf.getString("node.port", "11110"));
 		jetty = new Server(port);
+		try {
+			InetAddress thisIp = InetAddress.getLocalHost();
+	    	this.setIpAddress(thisIp.getHostAddress());
+		} catch (UnknownHostException e) {
+			
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -186,7 +195,7 @@ public class Node {
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
-			result += "Advertise url: http://<external ip>:"+port+"/node";
+			result += "Advertise url: http://"+this.getIpAddress()+":"+port+"/node";
 		return result;
 	}
 	
@@ -235,8 +244,8 @@ public class Node {
 		this.clusterID = clusterID;
 	}
 
-	public UUID getClusterID() {
-		return clusterID;
+	public String getClusterID() {
+		return clusterID.toString();
 	}
 
 	public void setClusterName(String clusterName) {
@@ -250,11 +259,24 @@ public class Node {
 	public int getPort() {
 		return port;
 	}
+
 	public VFS getVFS() {
 		return vfs;
 	}
 
 	public static Node getNode() {
 		return thisNode;
+	}
+
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
+
+	public String getIpAddress() {
+		return ipAddress;
+	}
+	
+	public synchronized void connectToMaster(String masterURL) {
+		this.myNodeRPC.connectToServer(masterURL);
 	}
 }

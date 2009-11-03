@@ -57,4 +57,8 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public Result mkdir(String cmd, DFileSpec dir) {
 		return Result.ERROR_EXISTS;
 	}
+	
+	public void connectToNetwork(String cmd, String masterURL) {
+		managedNode.connectToMaster(masterURL);
+	}
 }

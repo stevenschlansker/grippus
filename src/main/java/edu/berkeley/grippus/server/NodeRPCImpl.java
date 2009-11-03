@@ -1,8 +1,12 @@
 package edu.berkeley.grippus.server;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 
 import java.util.UUID;
+
+import jline.ConsoleReader;
+
 import com.caucho.hessian.server.HessianServlet;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.sun.jdmk.comm.MalformedHttpException;
@@ -10,10 +14,11 @@ import com.sun.jdmk.comm.MalformedHttpException;
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	private static final long serialVersionUID = 1L;
 
-	private Node myNode;
+	static Node myNode = Node.getNode();
 	public NodeRPCImpl() { /* nothing */ }
 	
 	NodeRPCImpl(Node node) {
+	
 	}
 
 	/*** 
@@ -24,15 +29,28 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	 */
 	public void connectToServer(String masterServerURL) {
 		try {
-			HessianProxyFactory factory = new HessianProxyFactory();			
+			if (myNode == null) {
+				myNode = Node.getNode();
+			}
+			HessianProxyFactory factory = new HessianProxyFactory();	
+			factory.setUser("grippus");
+			ConsoleReader console = new ConsoleReader();
+			String pw = console.readLine("Cluster password: ", '*');
+			factory.setPassword(pw);
 			NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterServerURL);
 			myNode.setMasterServer(master);
 			myNode.setMasterURL(masterServerURL);
 			myNode.setClusterName(master.getMasterClusterName());
-			myNode.setClusterID(master.getMasterClusterUUID());
-			myNode.getMasterServer().getNewNode("http:\\<external ip>"+myNode.getPort());
+			byte[] blah = master.getMasterClusterUUID().getBytes();
+			UUID clusterID = UUID.nameUUIDFromBytes(blah);
+			myNode.setClusterID(clusterID);
+			String nodeURL = "http:\\"+myNode.getIpAddress()+":"+String.valueOf(myNode.getPort());
+//			myNode.getMasterServer().getNewNode(nodeURL);
 		} catch (MalformedURLException e) {
-			
+			/* empty URL */
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -41,6 +59,9 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	 */
 	public void getNewNode(String newNodeURL) {
 		try {
+			if (myNode == null) {
+				myNode = Node.getNode();
+			}
 			HessianProxyFactory factory = new HessianProxyFactory();
 			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
 			myNode.getClusterMembers().add(newNode);
@@ -57,14 +78,16 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	}
 	
 	public String getMasterClusterName() {
+		if (myNode == null) {
+			myNode = Node.getNode();
+		}
 		return myNode.getClusterName();
 	}
 	
-	public UUID getMasterClusterUUID() {
-		return myNode.getClusterID();
-	}
-	
-	public void getClusterUUID(String masterServer) {
-		
+	public String getMasterClusterUUID() {
+		if (myNode == null) {
+			myNode = Node.getNode();
+		}
+		return myNode.getClusterID().toString();
 	}
 }
