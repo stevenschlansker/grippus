@@ -1,7 +1,6 @@
 package edu.berkeley.grippus.server;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -14,10 +13,6 @@ import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
-import org.eclipse.jetty.http.security.Constraint;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -125,7 +120,7 @@ public class Node {
 
 	private void configureJetty() {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		Constraint constraint = new Constraint();
+		/*Constraint constraint = new Constraint();
 		constraint.setName(Constraint.__BASIC_AUTH);
 		constraint.setRoles(new String[] {"grippus"});
 		constraint.setAuthenticate(true);
@@ -146,7 +141,7 @@ public class Node {
 			throw new RuntimeException("initialization failed");
 		}
 		sh.setLoginService(new HashLoginService("grippus", tempFile.getAbsolutePath()));
-		context.setSecurityHandler(sh);
+		context.setSecurityHandler(sh);*/
 		context.setContextPath("/");
 		context.addServlet(NodeRPCImpl.class, "/node/*");
 		NodeManagementRPCImpl.managedNode = this;
