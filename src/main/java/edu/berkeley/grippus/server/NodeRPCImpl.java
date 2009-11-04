@@ -1,7 +1,5 @@
 package edu.berkeley.grippus.server;
 
-import java.util.HashSet;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
@@ -27,9 +25,8 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	}
 
 	@Override
-	public boolean advertiseJoiningNode(String joinerURL) {
-		// TODO Auto-generated method stub
-		return false;
+	public Errno advertiseJoiningNode(String joinerURL) {
+		return myNode.addPeer(joinerURL);
 	}
 
 	@Override
@@ -39,28 +36,8 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	}
 
 	@Override
-	public HashSet<String> getClusterList() {
-		return (HashSet<String>) myNode.getClusterURLS();
-	}
-
-	@Override
 	public String getMaster() {
 		return myNode.getMasterURL();
-	}
-
-	@Override
-	public String joinCluster(String myURL) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean leaveCluster(String leaverURL) {
-		if(!myNode.isMaster()){
-			logger.warn("Tried to leave non-master Node");
-			return false;
-		}
-		return myNode.removeNodeAsMaster(leaverURL);
 	}
 
 	/*** 
@@ -70,20 +47,5 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	 */
 	public Errno connectToServer(String masterServerURL, String clusterPassword) {
 		return myNode.connectToServer(masterServerURL, clusterPassword);
-	}
-	
-	/***
-	 * Method to acquire a new node into the master server
-	 */
-	public void getNewNode(String newNodeURL) {
-		myNode.getNewNode(newNodeURL);
-	}
-	
-	public String getMasterClusterName() {
-		return myNode.getClusterName();
-	}
-	
-	public String getMasterClusterUUID() {
-		return myNode.getClusterID().toString();
 	}
 }
