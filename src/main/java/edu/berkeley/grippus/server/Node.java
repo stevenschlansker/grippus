@@ -391,7 +391,7 @@ public class Node {
 		for (NodeRPC node : clusterMembers.values()) {
 			node.advertiseJoiningNode(newNodeURL);
 		}
-		Set<String> otherNodes = clusterMembers.keySet();
+		Set<String> otherNodes = new HashSet<String>(clusterMembers.keySet());
 		addPeer(newNodeURL);
 		NodeRPC newNode = clusterMembers.get(newNodeURL);
 		newNode.advertiseJoiningNode(myNodeURL);
