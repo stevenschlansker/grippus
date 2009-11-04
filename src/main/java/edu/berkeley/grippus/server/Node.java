@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
+
 import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
@@ -217,9 +219,9 @@ public class Node {
 		if (state == NodeState.MASTER)
 			result += "Advertise url: " + getMasterURL() + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER) {
-			result += "Cluster members:";
-			for (String name : getClusterMembers().keySet())
-				result += "\n\t" + name + "";
+			result += "Other cluster members:";
+			for (Entry<String, NodeRPC> node : getClusterMembers().entrySet())
+				result += "\n\t" + node.getKey() + " " + node.getValue().getNodeRef();
 		}
 		return result;
 	}
@@ -398,5 +400,9 @@ public class Node {
 		for (String node : otherNodes)
 			newNode.advertiseJoiningNode(node);
 		return Errno.SUCCESS;
+	}
+
+	public String getNodeRef() {
+		return nodeRef.toString();
 	}
 }

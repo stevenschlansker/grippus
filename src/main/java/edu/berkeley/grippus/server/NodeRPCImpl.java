@@ -48,4 +48,9 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	public Errno connectToServer(String masterServerURL, String clusterPassword) {
 		return myNode.connectToServer(masterServerURL, clusterPassword);
 	}
+
+	@Override
+	public String getNodeRef() {
+		return myNode.getNodeRef();
+	}
 }
