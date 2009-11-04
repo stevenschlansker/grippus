@@ -25,12 +25,12 @@ public class VFS {
 		return path;
 	}
 
-	public Errno mount(DFileSpec where, String realPath) {
+	public Errno mount(DFileSpec where, String realPath, Permission perm) {
 		DFile oldEntry = find(where);
 		DFile oldParent = find(where.upOneLevel());
 		if (!oldEntry.isDirectory() || oldEntry.getChildren().size() > 2)
 			return Errno.ERROR_ILLEGAL_ARGUMENT;
-		DMount newMount = new DPassthroughMount(where, realPath, oldParent);
+		DMount newMount = new DPassthroughMount(where, realPath, oldParent, perm);
 		return oldParent.replaceEntry(oldEntry, newMount);
 	}
 }

@@ -20,6 +20,8 @@ import com.caucho.hessian.client.HessianProxyFactory;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
+import edu.berkeley.grippus.fs.DPermission;
+import edu.berkeley.grippus.fs.Permission;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
@@ -41,6 +43,7 @@ public class Node {
 	private NodeRPC masterServer;
 	private String ipAddress;
 	private String myNodeURL;
+	private final NodeRef nodeRef;
 
 	private final VFS vfs = new VFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
@@ -60,6 +63,7 @@ public class Node {
 			throw new RuntimeException("Server root " + serverRoot + " is not a directory!");
 		conf = new Configuration(this, new File(serverRoot, "config"));
 		conf.set("node.name", name);
+		nodeRef = conf.get("node.ref", new NodeRef());
 		maybeInitializeConfig(conf);
 		bs = new BackingStore(this, new File(serverRoot, "store"));
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
@@ -195,7 +199,7 @@ public class Node {
 	}
 
 	public String status() {
-		String result = "Node " + name + ": " + state + "\n";
+		String result = "Node " + name + ": " + state + " " + nodeRef + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
@@ -412,5 +416,9 @@ public class Node {
 
 	public Errno share(DFileSpec dfs, String realPath) {
 		throw new AssertionError("Not implemented");
+	}
+
+	public Permission defaultPermissions() {
+		return new DPermission(nodeRef);
 	}
 }

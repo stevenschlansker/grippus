@@ -5,7 +5,7 @@ public interface NodeRPC {
 
 	/** Returns the master NodeRPC of this NodeRPC's cluster
 	 */
-	String getMaster();	
+	String getMaster();
 	
 	/** joinCluster sends a join request which will add this NodeRPC to the 
 	 *  canonical set list and propagate changes to the rest of the cluster.

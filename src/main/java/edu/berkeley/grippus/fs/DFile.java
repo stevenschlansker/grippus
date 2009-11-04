@@ -9,9 +9,11 @@ import edu.berkeley.grippus.Errno;
 public abstract class DFile {
 
 	private final String name;
+	private final Permission permissions;
 
-	public DFile(String name) {
+	public DFile(String name, Permission perm) {
 		this.name = name;
+		this.permissions = perm;
 	}
 
 	public abstract Map<String, DFile> getChildren();
@@ -34,7 +36,7 @@ public abstract class DFile {
 				return child.find(pathbits.subList(1, pathbits.size()));
 		if (pathbits.size() > 1)
 			throw new RuntimeException("No such file or directory");
-		return new DirectoryPlaceholderDFile(this, first);
+		return new DirectoryPlaceholderDFile(this, first, new UndefinedPermissions());
 	}
 
 	public DFile find(String path) {
@@ -51,11 +53,15 @@ public abstract class DFile {
 		return name;
 	}
 
+	public Permission getPermissions() {
+		return permissions;
+	}
+
 	/** On a directory entry, create it */
-	public abstract Errno mkdir();
+	public abstract Errno mkdir(Permission perm);
 
 	/** On a directory, create the named child */
-	public abstract Errno mkdir(String name);
+	public abstract Errno mkdir(String name, Permission perm);
 
 	public abstract boolean isDirectory();
 

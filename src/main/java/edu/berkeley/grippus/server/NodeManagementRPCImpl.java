@@ -62,7 +62,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 
 	@Override
 	public Errno mkdir(String cmd, DFileSpec dir) {
-		return managedNode.getVFS().find(dir).mkdir();
+		return managedNode.getVFS().find(dir).mkdir(managedNode.defaultPermissions());
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	@Override
 	public Errno mount(String cmd, String realPath, String vPath) {
 		DFileSpec dfs = new DFileSpec(vPath);
-		return managedNode.getVFS().mount(dfs, realPath);
+		return managedNode.getVFS().mount(dfs, realPath, managedNode.defaultPermissions());
 	}
 	
 	public Errno connectToNetwork(String cmd, String masterURL, String clusterPassword) {
