@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Map.Entry;
-
 import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
