@@ -145,6 +145,7 @@ public class Node {
 		context.setAttribute("node", this);
 		context.addServlet(NodeRPCImpl.class, "/node/*");
 		context.addServlet(NodeManagementRPCImpl.class, "/mgmt/*");
+		context.addServlet(NodeMasterRPCImpl.class, "/master/*");
 		jetty.setHandler(context);
 	}
 
