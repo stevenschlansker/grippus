@@ -62,7 +62,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 
 	@Override
 	public Errno mkdir(String cmd, DFileSpec dir) {
-		return managedNode.getVFS().find(dir).mkdir(managedNode.defaultPermissions());
+		return managedNode.getVFS().mkdir(dir, managedNode.defaultPermissions());
 	}
 
 	@Override

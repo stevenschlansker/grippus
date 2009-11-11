@@ -17,7 +17,7 @@ public class VFS {
 		return root.find(path);
 	}
 
-	public DFile find(DFileSpec path) {
+	private DFile find(DFileSpec path) {
 		return root.find(path);
 	}
 
@@ -32,5 +32,9 @@ public class VFS {
 			return Errno.ERROR_ILLEGAL_ARGUMENT;
 		DMount newMount = new DPassthroughMount(where, realPath, oldParent, perm);
 		return oldParent.replaceEntry(oldEntry, newMount);
+	}
+
+	public Errno mkdir(DFileSpec dir, Permission perm) {
+		return find(dir).mkdir(perm);
 	}
 }
