@@ -82,8 +82,8 @@ public class Node {
 		}
 	}
 	
-	HashSet<String> getClusterURLS(){
-		return (HashSet<String>) clusterMembers.keySet();
+	Set<String> getClusterURLS(){
+		return clusterMembers.keySet();
 	}
 	
 	public static void main(String[] args) {
