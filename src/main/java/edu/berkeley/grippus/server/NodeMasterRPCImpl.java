@@ -1,6 +1,6 @@
 package edu.berkeley.grippus.server;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,8 +32,8 @@ public class NodeMasterRPCImpl extends HessianServlet implements NodeMasterRPC {
 	}
 
 	@Override
-	public HashSet<String> getClusterList() {
-		return (HashSet<String>) myNode.getClusterURLS();
+	public Set<String> getOtherNodes() {
+		return myNode.getClusterURLS();
 	}
 
 	@Override
@@ -49,11 +49,14 @@ public class NodeMasterRPCImpl extends HessianServlet implements NodeMasterRPC {
 		}
 		return myNode.removeNodeAsMaster(leaverURL);
 	}
-	public String getMasterClusterName() {
+
+	@Override
+	public String getClusterName() {
 		return myNode.getClusterName();
 	}
 
-	public String getMasterClusterUUID() {
+	@Override
+	public String getClusterUUID() {
 		return myNode.getClusterID().toString();
 	}
 }

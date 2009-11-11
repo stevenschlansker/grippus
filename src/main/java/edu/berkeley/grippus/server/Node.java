@@ -301,7 +301,7 @@ public class Node {
 	 *  our own; removes any excess and adds any unlisted.
 	 */
 	public void checkClusterMembers(){
-		Set<String> masterMembers = masterServer.getClusterList();
+		Set<String> masterMembers = masterServer.getOtherNodes();
 		for(String key : clusterMembers.keySet()){
 			if(!masterMembers.contains(key)){
 				clusterMembers.remove(key);
@@ -369,8 +369,8 @@ public class Node {
 			NodeMasterRPC master = (NodeMasterRPC) factory.create(NodeMasterRPC.class, masterServerURL);
 			setMasterServer(master);
 			setMasterURL(masterServerURL);
-			setClusterName(master.getMasterClusterName());
-			String clusterUUIDString = master.getMasterClusterUUID();
+			setClusterName(master.getClusterName());
+			String clusterUUIDString = master.getClusterUUID();
 			UUID clusterID = UUID.fromString(clusterUUIDString);
 			setClusterID(clusterID);
 			master.joinCluster(myNodeURL);

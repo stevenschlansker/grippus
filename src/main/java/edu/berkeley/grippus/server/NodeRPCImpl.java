@@ -36,7 +36,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	}
 
 	@Override
-	public String getMaster() {
+	public String getMasterURL() {
 		return myNode.getMasterURL();
 	}
 

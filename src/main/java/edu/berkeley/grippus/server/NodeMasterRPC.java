@@ -13,11 +13,11 @@ public interface NodeMasterRPC {
 
 	/** Gets the canonical cluster member list. Should only be sent to the Master.
 	 */
-	Set<String> getClusterList();
+	Set<String> getOtherNodes();
 
 	/** Removes self from the Master's cluster - should only be sent to the Master.
 	 */
 	boolean leaveCluster(String myURL);
-	public String getMasterClusterName();
-	public String getMasterClusterUUID();
+	public String getClusterName();
+	public String getClusterUUID();
 }
