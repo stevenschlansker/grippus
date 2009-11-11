@@ -5,13 +5,15 @@ import java.util.Map;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.server.DPassthroughMount;
 
-public class LocalVFS implements VFS {
+public class LocalVFS extends VFS {
 	private DFile root = new RootDFile();
 
+	@Override
 	public Map<String, DFile> ls(DFile cwd) {
 		return cwd.getChildren();
 	}
-	
+
+	@Override
 	public DFile resolve(DFileSpec path) {
 		if (path.getPath().equals("/")) return root;
 		return root.find(path);
@@ -21,10 +23,7 @@ public class LocalVFS implements VFS {
 		return root.find(path);
 	}
 
-	public DFileSpec canonicalize(DFileSpec path) {
-		return path;
-	}
-
+	@Override
 	public Errno mount(DFileSpec where, String realPath, Permission perm) {
 		DFile oldEntry = find(where);
 		DFile oldParent = find(where.upOneLevel());
@@ -34,6 +33,7 @@ public class LocalVFS implements VFS {
 		return oldParent.replaceEntry(oldEntry, newMount);
 	}
 
+	@Override
 	public Errno mkdir(DFileSpec dir, Permission perm) {
 		return find(dir).mkdir(perm);
 	}

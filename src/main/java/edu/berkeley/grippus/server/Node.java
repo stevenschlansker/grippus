@@ -23,6 +23,7 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DPermission;
+import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.fs.Permission;
 import edu.berkeley.grippus.fs.LocalVFS;
@@ -48,7 +49,7 @@ public class Node {
 	private String myNodeURL;
 	private final NodeRef nodeRef;
 
-	private final VFS vfs = new LocalVFS();
+	private VFS vfs = new LocalVFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
 
 	private final HashMap<String, NodeRPC> clusterMembers = new HashMap<String, NodeRPC>();
@@ -376,6 +377,7 @@ public class Node {
 			setClusterID(clusterID);
 			master.joinCluster(myNodeURL);
 			state = NodeState.SLAVE;
+			vfs = new SlaveVFS(master);
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception with master server url");
 		}
