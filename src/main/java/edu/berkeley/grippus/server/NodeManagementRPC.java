@@ -10,7 +10,7 @@ public interface NodeManagementRPC {
 	public Errno initCluster(String cmd, String clusterName);
 	public String disconnect(String cmd);
 	public String ls(String cmd, DFileSpec path);
-	public Errno connectToNetwork(String cmd, String masterURL, String clusterPassword);
+	public Errno joinCluster(String cmd, String masterURL, String clusterPassword);
 	public Errno mkdir(String cmd, DFileSpec dir);
 	public DFileSpec canonicalizePath(DFileSpec append);
 	public Errno mount(String cmd, String realPath, String vPath);

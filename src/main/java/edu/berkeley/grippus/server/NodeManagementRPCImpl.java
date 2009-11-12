@@ -76,7 +76,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 		return managedNode.getVFS().mount(dfs, realPath, managedNode.defaultPermissions());
 	}
 	
-	public Errno connectToNetwork(String cmd, String masterURL, String clusterPassword) {
+	public Errno joinCluster(String cmd, String masterURL, String clusterPassword) {
 		return managedNode.connectToServer(masterURL, clusterPassword);
 	}
 

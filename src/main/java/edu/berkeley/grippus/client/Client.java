@@ -126,6 +126,6 @@ public class Client {
 	}
 	
 	public Errno connectToNetwork(String cmd, String masterURL) {
-		return node.connectToNetwork(cmd, masterURL, "k");
+		return node.joinCluster(cmd, masterURL, "k");
 	}
 }
