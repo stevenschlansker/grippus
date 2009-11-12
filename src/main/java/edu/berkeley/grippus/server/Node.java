@@ -24,10 +24,10 @@ import com.caucho.hessian.client.HessianRuntimeException;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DPermission;
+import edu.berkeley.grippus.fs.LocalVFS;
+import edu.berkeley.grippus.fs.Permission;
 import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
-import edu.berkeley.grippus.fs.Permission;
-import edu.berkeley.grippus.fs.LocalVFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
@@ -311,12 +311,13 @@ public class Node {
 		Set<String> masterMembers = masterServer.getOtherNodes();
 		for(String key : clusterMembers.keySet()){
 			if(!masterMembers.contains(key)){
+				if(key== getMasterURL()) continue;
 				clusterMembers.remove(key);
 			}
 		}
 		try {
 			for(String m_key : masterMembers){
-				if(!clusterMembers.containsKey(m_key)){				
+				if(!clusterMembers.containsKey(m_key)){	
 						clusterMembers.put(m_key, (NodeRPC) factory.create(NodeRPC.class, m_key));				
 				}
 			}
@@ -351,6 +352,7 @@ public class Node {
 			clusterMembers.remove(url);
 		}
 	}
+
 
 	public NodeMasterRPC getMaster(){
 		return masterServer;
