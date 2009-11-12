@@ -3,6 +3,9 @@ package edu.berkeley.grippus.server;
 import java.util.Set;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.DFile;
+import edu.berkeley.grippus.fs.DFileSpec;
+import edu.berkeley.grippus.fs.Permission;
 
 public interface NodeMasterRPC {
 	/** joinCluster sends a join request which will add this NodeRPC to the 
@@ -20,4 +23,6 @@ public interface NodeMasterRPC {
 	boolean leaveCluster(String myURL);
 	public String getClusterName();
 	public String getClusterUUID();
+	public DFile downloadMetadata();
+	public Errno mkdir(DFileSpec dir, Permission perm);
 }

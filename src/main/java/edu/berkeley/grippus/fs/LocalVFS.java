@@ -1,23 +1,11 @@
 package edu.berkeley.grippus.fs;
 
-import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.server.DPassthroughMount;
 
 public class LocalVFS extends VFS {
 	private DFile root = new RootDFile();
-
-	@Override
-	public Map<String, DFile> ls(DFile cwd) {
-		return cwd.getChildren();
-	}
-
-	@Override
-	public DFile resolve(DFileSpec path) {
-		if (path.getPath().equals("/")) return root;
-		return root.find(path);
-	}
 
 	private DFile find(DFileSpec path) {
 		return root.find(path);
@@ -36,5 +24,9 @@ public class LocalVFS extends VFS {
 	@Override
 	public Errno mkdir(DFileSpec dir, Permission perm) {
 		return find(dir).mkdir(perm);
+	}
+	@Override
+	protected DFile getRoot() {
+		return root;
 	}
 }
