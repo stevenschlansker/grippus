@@ -10,29 +10,24 @@ public class SlaveVFS extends VFS {
 	public SlaveVFS(NodeMasterRPC master) {
 		this.master = master;
 	}
-
 	@Override
 	public Map<String, DFile> ls(DFile cwd) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 	@Override
 	public Errno mkdir(DFileSpec dir, Permission perm) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 	@Override
 	public Errno mount(DFileSpec where, String realPath, Permission perm) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 	@Override
 	public DFile resolve(DFileSpec path) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
