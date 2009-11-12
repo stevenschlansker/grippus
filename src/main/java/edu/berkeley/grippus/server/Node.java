@@ -19,6 +19,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.caucho.hessian.client.HessianRuntimeException;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
@@ -244,8 +245,12 @@ public class Node {
 	 * cluster list and sets the state to DISCONNECTED.
 	 */
 	public synchronized void disconnect() {
-		if(masterServer!= null){
-			masterServer.leaveCluster(this.myNodeURL);
+		if(masterServer != null){
+			try {
+				masterServer.leaveCluster(this.myNodeURL);
+			} catch (HessianRuntimeException e) {
+				// TODO figure out some saner way to handle disappearing nodes
+			}
 		}
 		masterServer = null;
 		masterURL = null;
