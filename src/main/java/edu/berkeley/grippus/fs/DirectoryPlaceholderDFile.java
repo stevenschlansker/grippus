@@ -7,19 +7,19 @@ public class DirectoryPlaceholderDFile extends VirtualDFile {
 	private final DFile parent;
 	private final String name;
 
-	public DirectoryPlaceholderDFile(DFile parent, String name) {
-		super(name);
+	public DirectoryPlaceholderDFile(DFile parent, String name, Permission perm) {
+		super(name, perm);
 		this.parent = parent;
 		this.name = name;
 	}
 
 	@Override
-	public Errno mkdir() {
-		return parent.mkdir(name);
+	public Errno mkdir(Permission perm) {
+		return parent.mkdir(name, perm);
 	}
 
 	@Override
-	public Errno mkdir(String name) {
+	public Errno mkdir(String name, Permission perm) {
 		return Errno.ERROR_FILE_NOT_FOUND;
 	}
 

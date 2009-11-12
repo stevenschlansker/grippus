@@ -1,5 +1,8 @@
 package edu.berkeley.grippus.server;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+
 import com.caucho.hessian.server.HessianServlet;
 
 import edu.berkeley.grippus.Errno;
@@ -8,9 +11,15 @@ import edu.berkeley.grippus.fs.VFS;
 
 public class NodeManagementRPCImpl extends HessianServlet implements NodeManagementRPC {
 	private static final long serialVersionUID = 1L;
-	static Node managedNode = Node.getNode(); // TODO: ugly fucking hack!!! :( :( :(
+	private Node managedNode;
 
 	public NodeManagementRPCImpl() { /* do nothing */ }
+
+	@Override
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		managedNode = (Node) config.getServletContext().getAttribute("node");
+	}
 
 	@Override
 	public String version(String cmd) {
@@ -30,8 +39,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 
 	@Override
 	public Errno initCluster(String cmd, String clusterName) {
-		managedNode.initCluster(clusterName);
-		return Errno.SUCCESS_TOPOLOGY_CHANGE;
+		return managedNode.initCluster(clusterName);
 	}
 
 	@Override
@@ -54,7 +62,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 
 	@Override
 	public Errno mkdir(String cmd, DFileSpec dir) {
-		return managedNode.getVFS().find(dir).mkdir();
+		return managedNode.getVFS().mkdir(dir, managedNode.defaultPermissions());
 	}
 
 	@Override
@@ -65,10 +73,16 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	@Override
 	public Errno mount(String cmd, String realPath, String vPath) {
 		DFileSpec dfs = new DFileSpec(vPath);
-		return managedNode.getVFS().mount(dfs, realPath);
+		return managedNode.getVFS().mount(dfs, realPath, managedNode.defaultPermissions());
 	}
 	
 	public Errno connectToNetwork(String cmd, String masterURL, String clusterPassword) {
 		return managedNode.connectToServer(masterURL, clusterPassword);
+	}
+
+	@Override
+	public Errno share(String cmd, String realPath, String vPath) {
+		DFileSpec dfs = new DFileSpec(vPath);
+		return managedNode.share(dfs, realPath);
 	}
 }

@@ -4,7 +4,6 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 
 public interface NodeManagementRPC {
-
 	public String version(String cmd);
 	public String terminate(String cmd);
 	public String status(String cmd);
@@ -15,4 +14,5 @@ public interface NodeManagementRPC {
 	public Errno mkdir(String cmd, DFileSpec dir);
 	public DFileSpec canonicalizePath(DFileSpec append);
 	public Errno mount(String cmd, String realPath, String vPath);
+	public Errno share(String cmd, String realPath, String vPath);
 }

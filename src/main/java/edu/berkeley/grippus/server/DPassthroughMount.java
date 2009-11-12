@@ -8,25 +8,26 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DMount;
+import edu.berkeley.grippus.fs.Permission;
 
 public class DPassthroughMount extends DMount {
 
 	private final PassthroughFile root;
 	private final File mountedDirectory;
 	
-	public DPassthroughMount(DFileSpec dfs, String basePath, DFile parent) {
-		super(dfs.name());
+	public DPassthroughMount(DFileSpec dfs, String basePath, DFile parent, Permission perm) {
+		super(dfs.name(), perm);
 		mountedDirectory = new File(basePath);
-		root = new PassthroughFile(dfs.name(), mountedDirectory, parent);
+		root = new PassthroughFile(dfs.name(), mountedDirectory, parent, perm);
 	}
 
 	@Override
-	public Errno mkdir() {
+	public Errno mkdir(Permission perm) {
 		return Errno.ERROR_READ_ONLY;
 	}
 
 	@Override
-	public Errno mkdir(String name) {
+	public Errno mkdir(String name, Permission perm) {
 		return Errno.ERROR_READ_ONLY;
 	}
 
@@ -48,18 +49,18 @@ public class DPassthroughMount extends DMount {
 	private class PassthroughFile extends DFile {
 		private final File me;
 		private final DFile parent;
-		public PassthroughFile(String name, File whoIAm, DFile parent) {
-			super(name);
+		public PassthroughFile(String name, File whoIAm, DFile parent, Permission perm) {
+			super(name,perm);
 			me = whoIAm;
 			this.parent = parent;
 		}
 		@Override public boolean isDirectory() {
 			return me.isDirectory();
 		}
-		@Override public Errno mkdir() {
+		@Override public Errno mkdir(Permission perm) {
 			return Errno.ERROR_READ_ONLY;
 		}
-		@Override public Errno mkdir(String name) {
+		@Override public Errno mkdir(String name, Permission perm) {
 			return Errno.ERROR_READ_ONLY;
 		}
 		@Override public Errno replaceEntry(DFile oldEntry, DMount newMount) {
@@ -70,7 +71,7 @@ public class DPassthroughMount extends DMount {
 		public Map<String, DFile> getChildren() {
 			Map<String, DFile> result = new HashMap<String, DFile>();
 			for (String child : me.list()) {
-				result.put(child, new PassthroughFile(child, new File(me, child), this));
+				result.put(child, new PassthroughFile(child, new File(me, child), this, getPermissions()));
 			}
 			result.put(".", this);
 			result.put("..", parent);

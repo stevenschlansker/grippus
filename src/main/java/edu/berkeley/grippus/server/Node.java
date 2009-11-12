@@ -7,7 +7,9 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import jline.ConsoleReader;
 
@@ -19,12 +21,16 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import com.caucho.hessian.client.HessianProxyFactory;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.DFileSpec;
+import edu.berkeley.grippus.fs.DPermission;
+import edu.berkeley.grippus.fs.LocalVFS;
+import edu.berkeley.grippus.fs.Permission;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Node {
-	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER }
+	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER, INITIALIZING }
 
 	public final Logging log = new Log4JLogger();
 	private final Logger logger = log.getLogger(Node.class);
@@ -37,26 +43,22 @@ public class Node {
 	private UUID clusterID;
 	private String clusterName;
 	private final int port;
-	private NodeRPC masterServer;
+	private NodeMasterRPC masterServer;
 	private String ipAddress;
 	private String myNodeURL;
+	private final NodeRef nodeRef;
 
-	private final VFS vfs = new VFS();
+	private VFS vfs = new LocalVFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
 
 	private final HashMap<String, NodeRPC> clusterMembers = new HashMap<String, NodeRPC>();
-	
-	private String masterURL = null;
 
-	private static Node thisNode;
+	private String masterURL = null;
 
 	private NodeState state = NodeState.DISCONNECTED;
 	private String clusterPassword;
 
 	public Node(String name) {
-		if (thisNode != null)
-			throw new RuntimeException("Already made a node here... static for now (I know this is bad!)");
-		thisNode = this;
 		this.name = name;
 		serverRoot = new File(System.getProperty("user.home"),".grippus/"+name);
 		if (!serverRoot.exists()) serverRoot.mkdirs();
@@ -64,6 +66,7 @@ public class Node {
 			throw new RuntimeException("Server root " + serverRoot + " is not a directory!");
 		conf = new Configuration(this, new File(serverRoot, "config"));
 		conf.set("node.name", name);
+		nodeRef = conf.get("node.ref", new NodeRef());
 		maybeInitializeConfig(conf);
 		bs = new BackingStore(this, new File(serverRoot, "store"));
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
@@ -79,8 +82,8 @@ public class Node {
 		}
 	}
 	
-	HashSet<String> getClusterURLS(){
-		return (HashSet<String>) clusterMembers.keySet();
+	Set<String> getClusterURLS(){
+		return clusterMembers.keySet();
 	}
 	
 	public static void main(String[] args) {
@@ -146,9 +149,10 @@ public class Node {
 		sh.setLoginService(new HashLoginService("grippus", tempFile.getAbsolutePath()));
 		context.setSecurityHandler(sh);*/
 		context.setContextPath("/");
+		context.setAttribute("node", this);
 		context.addServlet(NodeRPCImpl.class, "/node/*");
-		NodeManagementRPCImpl.managedNode = this;
 		context.addServlet(NodeManagementRPCImpl.class, "/mgmt/*");
+		context.addServlet(NodeMasterRPCImpl.class, "/master/*");
 		jetty.setHandler(context);
 	}
 
@@ -186,8 +190,20 @@ public class Node {
 		running = false;
 	}
 
-	public synchronized boolean addPeer(String string, int port) {
-		return false;
+	public synchronized Errno addPeer(String newNodeURL) {
+		NodeRPC newNode;
+		logger.debug("New peer "+newNodeURL);
+		try {
+			HessianProxyFactory factory = new HessianProxyFactory();
+			factory.setUser("grippus");
+			factory.setPassword(clusterPassword);
+			newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL exception for new node URL");
+			return Errno.ERROR_ILLEGAL_ARGUMENT;
+		}
+		clusterMembers.put(newNodeURL,newNode);
+		return Errno.SUCCESS;
 	}
 	
 	public Boolean isMaster() {
@@ -198,30 +214,28 @@ public class Node {
 	}
 
 	public String status() {
-		String result = "Node " + name + ": " + state + "\n";
+		String result = "Node " + name + ": " + state + " " + nodeRef + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER)
 			result += "Member of: " + clusterName + " (" + clusterID + ")\n";
 		if (state == NodeState.MASTER)
-			result += "Advertise url: " + this.myNodeURL + "\n";
+			result += "Advertise url: " + getMasterURL() + "\n";
 		if (state == NodeState.SLAVE || state == NodeState.MASTER) {
-			result += "Cluster members:";
-			for (String name : getClusterMembers().keySet())
-				result += "\n\t" + name + "";
+			result += "Other cluster members:";
+			for (Entry<String, NodeRPC> node : getClusterMembers().entrySet())
+				result += "\n\t" + node.getKey() + " " + node.getValue().getNodeRef();
 		}
 		return result;
 	}
 
-	public synchronized boolean initCluster(String clusterName) {
+	public synchronized Errno initCluster(String clusterName) {
+		if (state != NodeState.DISCONNECTED) return Errno.ERROR_ILLEGAL_ACTION;
 		disconnect();
 		state = NodeState.MASTER;
-		try{
-		masterServer = (NodeRPC) factory.create(NodeRPC.class, "http://"+ getIpAddress()+":"+getPort()+"/node");
-		} catch( MalformedURLException e){
-			logger.error("Nodes own URL does not work as a valid URL for making the master node");
-		}
+		setMasterURL("http://"+ipAddress+":"+port+"/master");
+		masterServer = new NodeMasterRPCImpl(this);
 		this.setClusterName(clusterName);
 		setClusterID(UUID.randomUUID());
-		return true;
+		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 	
 	/** Contacts the master node if it exists and removes self from the
@@ -244,15 +258,15 @@ public class Node {
 		return clusterMembers;
 	}
 
-	public void setMasterServer(NodeRPC masterServer) {
+	private void setMasterServer(NodeMasterRPC masterServer) {
 		this.masterServer = masterServer;
 	}
 
-	public NodeRPC getMasterServer() {
+	public NodeMasterRPC getMasterServer() {
 		return masterServer;
 	}
 
-	public void setMasterURL(String masterURL) {
+	private void setMasterURL(String masterURL) {
 		this.masterURL = masterURL;
 	}
 
@@ -283,38 +297,12 @@ public class Node {
 	public VFS getVFS() {
 		return vfs;
 	}
-
-	/** Method creates a NodeRPC based on the given url, and contacts it for 
-	 * its master NodeRPC. The Master is then sent a join request, and this 
-	 * nodes clusterSet and master are updated accordingly.
-	 * 
-	 * Cannot be called if Node is currently a master.
-	 * 
-	 * @param url
-	 * @throws MalformedURLException 
-	 */
-	public synchronized void joinNode(String url) throws MalformedURLException{
-		if( state == NodeState.MASTER) {
-			logger.warn("cannot join another network if master");
-			return;
-		}
-		NodeRPC target =  (NodeRPC) factory.create(NodeRPC.class, url);
-		String masterURL = target.getMaster();
-		disconnect();
-		masterServer = (NodeRPC) factory.create(NodeRPC.class, masterURL);
-		masterServer.joinCluster("http://"+ getIpAddress()+":"+getPort()+"/node");
-		HashSet<String> members = masterServer.getClusterList();
-		for( String member: members){
-			clusterMembers.put(member, (NodeRPC) factory.create(NodeRPC.class, member));
-		}
-		state = NodeState.SLAVE;
-	}
 	
 	/** Asks the master for the canonical cluster member list and checks it against
 	 *  our own; removes any excess and adds any unlisted.
 	 */
 	public void checkClusterMembers(){
-		HashSet<String> masterMembers = masterServer.getClusterList();
+		Set<String> masterMembers = masterServer.getOtherNodes();
 		for(String key : clusterMembers.keySet()){
 			if(!masterMembers.contains(key)){
 				if(key== getMasterURL()) continue;
@@ -324,7 +312,6 @@ public class Node {
 		try {
 			for(String m_key : masterMembers){
 				if(!clusterMembers.containsKey(m_key)){	
-						if(m_key == getNodeURL()) continue;
 						clusterMembers.put(m_key, (NodeRPC) factory.create(NodeRPC.class, m_key));				
 				}
 			}
@@ -359,17 +346,9 @@ public class Node {
 			clusterMembers.remove(url);
 		}
 	}
-	
-	
-	public static Node getNode() {
-		return thisNode;
-	}
-	
-	public String getNodeURL(){
-		return "http://"+ getIpAddress()+":"+getPort()+"/node";
-	}
-	
-	public NodeRPC getMaster(){
+
+
+	public NodeMasterRPC getMaster(){
 		return masterServer;
 	}
 
@@ -382,43 +361,52 @@ public class Node {
 	}
 
 	public Errno connectToServer(String masterServerURL, String clusterPassword) {
+		if (state != NodeState.DISCONNECTED) return Errno.ERROR_ILLEGAL_ACTION;
 		conf.set("cluster.password", clusterPassword);
 		this.clusterPassword = clusterPassword;
 		try {
+			state = NodeState.INITIALIZING;
 			HessianProxyFactory factory = new HessianProxyFactory();	
 			factory.setUser("grippus");
 			factory.setPassword(clusterPassword);
-			NodeRPC master = (NodeRPC) factory.create(NodeRPC.class, masterServerURL);
-			this.setMasterServer(master);
-			this.setMasterURL(masterServerURL);
-			this.setClusterName(master.getMasterClusterName());
-			String clusterUUIDString = master.getMasterClusterUUID();
+			NodeMasterRPC master = (NodeMasterRPC) factory.create(NodeMasterRPC.class, masterServerURL);
+			setMasterServer(master);
+			setMasterURL(masterServerURL);
+			setClusterName(master.getClusterName());
+			String clusterUUIDString = master.getClusterUUID();
 			UUID clusterID = UUID.fromString(clusterUUIDString);
-			this.setClusterID(clusterID);
-			this.clusterMembers.put(masterServerURL, master);
-			this.getMasterServer().getNewNode(this.myNodeURL);
-			this.state = NodeState.SLAVE;
+			setClusterID(clusterID);
+			master.joinCluster(myNodeURL);
+			state = NodeState.SLAVE;
+			vfs = new SlaveVFS(master);
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception with master server url");
 		}
 		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 
-	public void getNewNode(String newNodeURL) {
-		try {
-			HessianProxyFactory factory = new HessianProxyFactory();
-			factory.setUser("grippus");
-			factory.setPassword(clusterPassword);
-			NodeRPC newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
-			if (this.isMaster()) {
-				for (String nodeURL : this.getClusterMembers().keySet()) {
-					this.clusterMembers.get(nodeURL).getNewNode(newNodeURL);
-					newNode.getNewNode(nodeURL);
-				}
-			}
-			this.clusterMembers.put(newNodeURL,newNode);
-		} catch (MalformedURLException e) {
-			logger.error("Malformed URL exception for new node URL");
+	public Errno share(DFileSpec dfs, String realPath) {
+		throw new AssertionError("Not implemented");
+	}
+
+	public Permission defaultPermissions() {
+		return new DPermission(nodeRef);
+	}
+
+	public Errno masterAddSlave(String newNodeURL) {
+		for (NodeRPC node : clusterMembers.values()) {
+			node.advertiseJoiningNode(newNodeURL);
 		}
+		Set<String> otherNodes = new HashSet<String>(clusterMembers.keySet());
+		addPeer(newNodeURL);
+		NodeRPC newNode = clusterMembers.get(newNodeURL);
+		newNode.advertiseJoiningNode(myNodeURL);
+		for (String node : otherNodes)
+			newNode.advertiseJoiningNode(node);
+		return Errno.SUCCESS;
+	}
+
+	public String getNodeRef() {
+		return nodeRef.toString();
 	}
 }

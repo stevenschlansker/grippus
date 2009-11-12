@@ -11,15 +11,15 @@ public class VirtualDDirectory extends VirtualDFile {
 	
 	private final DFile parent;
 	
-	public VirtualDDirectory(String name, DFile parent) {
-		super(name);
+	public VirtualDDirectory(String name, DFile parent, Permission perm) {
+		super(name, perm);
 		this.parent = parent;
 		initializeChildren(parent);
 	}
 
 	/** for RootDFile's use, self-referential parent */
-	protected VirtualDDirectory(String name) {
-		super(name);
+	protected VirtualDDirectory(String name, Permission perm) {
+		super(name, perm);
 		this.parent = this;
 		initializeChildren(parent);
 	}
@@ -30,17 +30,17 @@ public class VirtualDDirectory extends VirtualDFile {
 	}
 
 	@Override
-	public Errno mkdir() {
+	public Errno mkdir(Permission perm) {
 		return Errno.ERROR_EXISTS;
 	}
 
 	@Override
-	public Errno mkdir(String name) {
+	public Errno mkdir(String name, Permission perm) {
 		if (getChildren().containsKey(name))
 			return Errno.ERROR_FILE_NOT_FOUND;
 		if (!nameValid(name))
 			return Errno.ERROR_BAD_NAME;
-		getChildren().put(name, new VirtualDDirectory(name, this));
+		getChildren().put(name, new VirtualDDirectory(name, this, perm));
 		return Errno.SUCCESS;
 	}
 
