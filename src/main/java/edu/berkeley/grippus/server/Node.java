@@ -353,7 +353,6 @@ public class Node {
 		}
 	}
 
-
 	public NodeMasterRPC getMaster(){
 		return masterServer;
 	}
