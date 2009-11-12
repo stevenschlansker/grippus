@@ -25,6 +25,7 @@ import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DPermission;
 import edu.berkeley.grippus.fs.LocalVFS;
 import edu.berkeley.grippus.fs.Permission;
+import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.util.Logging;
 import edu.berkeley.grippus.util.log.Log4JLogger;
