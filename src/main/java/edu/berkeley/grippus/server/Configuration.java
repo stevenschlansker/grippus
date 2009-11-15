@@ -17,7 +17,7 @@ public class Configuration {
 	
 	@SuppressWarnings("unchecked")
 	public Configuration(Node node, File file) {
-		logger = node.log.getLogger(Configuration.class);
+		logger = Logger.getLogger(Configuration.class);
 		this.file = file;
 		if (file.exists()) {
 			HashMap<String, Object> conf_in = null;

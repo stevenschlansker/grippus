@@ -28,14 +28,11 @@ import edu.berkeley.grippus.fs.LocalVFS;
 import edu.berkeley.grippus.fs.Permission;
 import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
-import edu.berkeley.grippus.util.Logging;
-import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Node {
 	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER, INITIALIZING }
 
-	public final Logging log = new Log4JLogger();
-	private final Logger logger = log.getLogger(Node.class);
+	private final Logger logger = Logger.getLogger(Node.class);
 	private volatile boolean running = false;
 	private final String name;
 	private final File serverRoot;

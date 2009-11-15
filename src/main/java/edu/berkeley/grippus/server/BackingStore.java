@@ -10,7 +10,7 @@ public class BackingStore {
 	private final long maxStoreSize;
 	private final Logger logger;
 	public BackingStore(Node node, File root) {
-		logger = node.log.getLogger(BackingStore.class);
+		logger = Logger.getLogger(BackingStore.class);
 		if (!root.exists()) root.mkdir();
 		if (!root.isDirectory())
 			throw new RuntimeException("Store root " + root + " is not a directory :(");

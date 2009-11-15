@@ -21,7 +21,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		myNode = (Node) config.getServletContext().getAttribute("node");
-		logger = myNode.log.getLogger(NodeRPCImpl.class);
+		logger = Logger.getLogger(NodeRPCImpl.class);
 	}
 
 	@Override

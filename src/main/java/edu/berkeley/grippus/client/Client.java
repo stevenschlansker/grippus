@@ -15,12 +15,9 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
-import edu.berkeley.grippus.util.Logging;
-import edu.berkeley.grippus.util.log.Log4JLogger;
 
 public class Client {
-	public final Logging log = new Log4JLogger();
-	private final Logger logger = log.getLogger(Client.class);
+	private final Logger logger = Logger.getLogger(Client.class);
 	private NodeManagementRPC node;
 	
 	private DFileSpec cwd = DFileSpec.ROOT;
