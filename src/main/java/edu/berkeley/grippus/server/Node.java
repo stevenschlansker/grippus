@@ -364,27 +364,32 @@ public class Node {
 
 	public Errno connectToServer(String masterServerURL, String clusterPassword) {
 		if (state != NodeState.DISCONNECTED) return Errno.ERROR_ILLEGAL_ACTION;
-		conf.set("cluster.password", clusterPassword);
-		this.clusterPassword = clusterPassword;
 		try {
-			state = NodeState.INITIALIZING;
-			HessianProxyFactory factory = new HessianProxyFactory();	
-			factory.setUser("grippus");
-			factory.setPassword(clusterPassword);
-			NodeMasterRPC master = (NodeMasterRPC) factory.create(NodeMasterRPC.class, masterServerURL);
-			setMasterServer(master);
-			setMasterURL(masterServerURL);
-			setClusterName(master.getClusterName());
-			String clusterUUIDString = master.getClusterUUID();
-			UUID clusterID = UUID.fromString(clusterUUIDString);
-			setClusterID(clusterID);
-			master.joinCluster(myNodeURL);
-			state = NodeState.SLAVE;
-			vfs = new SlaveVFS(master);
-		} catch (MalformedURLException e) {
-			logger.error("Malformed URL exception with master server url");
+			conf.set("cluster.password", clusterPassword);
+			this.clusterPassword = clusterPassword;
+			try {
+				state = NodeState.INITIALIZING;
+				HessianProxyFactory factory = new HessianProxyFactory();
+				factory.setUser("grippus");
+				factory.setPassword(clusterPassword);
+				NodeMasterRPC master = (NodeMasterRPC) factory.create(NodeMasterRPC.class, masterServerURL);
+				setMasterServer(master);
+				setMasterURL(masterServerURL);
+				setClusterName(master.getClusterName());
+				String clusterUUIDString = master.getClusterUUID();
+				UUID clusterID = UUID.fromString(clusterUUIDString);
+				setClusterID(clusterID);
+				master.joinCluster(myNodeURL);
+				state = NodeState.SLAVE;
+				vfs = new SlaveVFS(master);
+			} catch (MalformedURLException e) {
+				logger.error("Malformed URL exception with master server url");
+			}
+			return Errno.SUCCESS_TOPOLOGY_CHANGE;
+		} catch (RuntimeException t) {
+			state = NodeState.DISCONNECTED;
+			throw t;
 		}
-		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 
 	public Errno share(DFileSpec dfs, String realPath) {

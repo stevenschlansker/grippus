@@ -20,6 +20,8 @@ public abstract class Periodic implements Runnable {
 			} catch (InterruptedException e) {
 				LOG.error("Someone interrupted my precious \""+runner.getName()+"\" thread, dying!", e);
 				return;
+			} catch (RuntimeException r) {
+				LOG.error("Unexpected exception", r);
 			}
 			fire();
 		}
