@@ -9,6 +9,7 @@ public class SlaveVFS extends VFS {
 	private final NodeMasterRPC master;
 	private volatile DFile root = new VirtualDDirectory("%TEMPROOT%",
 			new EveryonePermissions());
+	@SuppressWarnings("unused")
 	private final Periodic updater = new Periodic(500, "VFS update thread") {
 		@Override protected void fire() {
 			root = master.downloadMetadata();
