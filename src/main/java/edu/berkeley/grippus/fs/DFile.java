@@ -1,13 +1,14 @@
 package edu.berkeley.grippus.fs;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
 
-public abstract class DFile {
-
+public abstract class DFile implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private final String name;
 	private final Permission permissions;
 

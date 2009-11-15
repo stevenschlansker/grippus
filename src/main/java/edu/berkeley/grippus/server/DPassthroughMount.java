@@ -11,7 +11,7 @@ import edu.berkeley.grippus.fs.DMount;
 import edu.berkeley.grippus.fs.Permission;
 
 public class DPassthroughMount extends DMount {
-
+	private static final long serialVersionUID = 1L;
 	private final PassthroughFile root;
 	private final File mountedDirectory;
 	
@@ -47,6 +47,7 @@ public class DPassthroughMount extends DMount {
 	}
 	
 	private class PassthroughFile extends DFile {
+		private static final long serialVersionUID = 1L;
 		private final File me;
 		private final DFile parent;
 		public PassthroughFile(String name, File whoIAm, DFile parent, Permission perm) {

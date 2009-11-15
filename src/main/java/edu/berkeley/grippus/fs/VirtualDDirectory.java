@@ -8,7 +8,7 @@ import com.google.common.collect.Collections2;
 import edu.berkeley.grippus.Errno;
 
 public class VirtualDDirectory extends VirtualDFile {
-	
+	private static final long serialVersionUID = 1L;
 	private final DFile parent;
 	
 	public VirtualDDirectory(String name, DFile parent, Permission perm) {

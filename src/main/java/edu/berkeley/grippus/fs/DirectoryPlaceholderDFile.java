@@ -3,7 +3,7 @@ package edu.berkeley.grippus.fs;
 import edu.berkeley.grippus.Errno;
 
 public class DirectoryPlaceholderDFile extends VirtualDFile {
-	
+	private static final long serialVersionUID = 1L;
 	private final DFile parent;
 	private final String name;
 
