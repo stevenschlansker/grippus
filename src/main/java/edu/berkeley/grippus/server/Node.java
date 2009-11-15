@@ -73,18 +73,18 @@ public class Node {
 		jetty = new Server(port);
 		try {
 			InetAddress thisIp = InetAddress.getLocalHost();
-	    	this.setIpAddress(thisIp.getHostAddress());
-	    	this.myNodeURL = "http://"+ getIpAddress()+":"+getPort()+"/node";
+			this.setIpAddress(thisIp.getHostAddress());
+			this.myNodeURL = "http://"+ getIpAddress()+":"+getPort()+"/node";
 		} catch (UnknownHostException e) {
 			logger.error("Unknown host", e);
 			throw new RuntimeException("Node initialization fails", e);
 		}
 	}
-	
+
 	Set<String> getClusterURLS(){
 		return clusterMembers.keySet();
 	}
-	
+
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 		if (args.length < 1 || args[0] == null || args[0].isEmpty()) {
@@ -93,18 +93,18 @@ public class Node {
 		}
 		new Node(args[0]).run();
 	}
-	
+
 	public void run() {
 		logger.info("Server starting up...");
-		
+
 		configureJetty();
-		
+
 		try {
 			jetty.start();
 		} catch(Exception e) {
 			logger.error("Could not start jetty", e);
 		}
-		
+
 		running = true;
 
 		while(running) {
@@ -112,7 +112,7 @@ public class Node {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) { /* don't bother */ }
 		}
-		
+
 		try {
 			jetty.stop();
 		} catch(Exception e) {
@@ -158,7 +158,7 @@ public class Node {
 	public Configuration getConf() {
 		return conf;
 	}
-	
+
 	private void maybeInitializeConfig(Configuration conf) {
 		ConsoleReader inp;
 		try {
@@ -168,13 +168,13 @@ public class Node {
 			//maybeInitialize(conf, inp, "node.mgmtport", "Node management port [11111]: ");
 			maybeInitialize(conf, inp, "store.maxsize", "Maximum size: ");
 			maybeInitialize(conf, inp, "mgmt.password", "Management password: ");
-			
+
 		} catch (IOException e) {
 			logger.error("Could not read from console; cannot configure, dying");
 			throw new RuntimeException("I/O problem", e);
 		}
 	}
-	
+
 	private void maybeInitialize(Configuration conf, ConsoleReader inp, String key, String prompt) throws IOException {
 		if (conf.getString(key) == null)
 			conf.set(key, inp.readLine(prompt));
@@ -204,7 +204,7 @@ public class Node {
 		clusterMembers.put(newNodeURL,newNode);
 		return Errno.SUCCESS;
 	}
-	
+
 	public Boolean isMaster() {
 		if (state == NodeState.MASTER) {
 			return true;
@@ -236,7 +236,7 @@ public class Node {
 		setClusterID(UUID.randomUUID());
 		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
-	
+
 	/** Contacts the master node if it exists and removes self from the
 	 * canonical cluster member list. Sets master to null, clears the local
 	 * cluster list and sets the state to DISCONNECTED.
@@ -300,7 +300,7 @@ public class Node {
 	public VFS getVFS() {
 		return vfs;
 	}
-	
+
 	/** Asks the master for the canonical cluster member list and checks it against
 	 *  our own; removes any excess and adds any unlisted.
 	 */
@@ -314,15 +314,15 @@ public class Node {
 		}
 		try {
 			for(String m_key : masterMembers){
-				if(!clusterMembers.containsKey(m_key)){	
-						clusterMembers.put(m_key, (NodeRPC) factory.create(NodeRPC.class, m_key));				
+				if(!clusterMembers.containsKey(m_key)){
+					clusterMembers.put(m_key, (NodeRPC) factory.create(NodeRPC.class, m_key));
 				}
 			}
 		} catch (MalformedURLException e) {
 			logger.error("badly formed URL", e);
 		}
 	}
-	
+
 	/** Checks that Node is in fact the master of the cluster. If so,
 	 *  removes the leaving node from the clusterSet and informs all other
 	 *  members of the departure.
@@ -340,7 +340,7 @@ public class Node {
 		}
 		return true;
 	}
-	
+
 	/** This method should only be called by the master through the NodeRPC.
 	 *  It removes the departed NodeRPC from the local set.
 	 */
