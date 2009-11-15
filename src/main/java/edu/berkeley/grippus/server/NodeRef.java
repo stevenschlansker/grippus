@@ -5,8 +5,9 @@ import java.util.UUID;
 
 public class NodeRef implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private final UUID nodeUUID = UUID.randomUUID();
-	public UUID getUUID() {
+	private final String nodeUUID = UUID.randomUUID().toString();
+
+	public String getUUID() {
 		return nodeUUID;
 	}
 	@Override
