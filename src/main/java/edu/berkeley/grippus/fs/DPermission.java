@@ -8,4 +8,8 @@ public class DPermission implements Permission {
 	public DPermission(NodeRef owner) {
 		this.owner = owner;
 	}
+
+	public NodeRef getOwner() {
+		return owner;
+	}
 }
