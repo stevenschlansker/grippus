@@ -7,7 +7,8 @@ import edu.berkeley.grippus.util.Periodic;
 
 public class SlaveVFS extends VFS {
 	private final NodeMasterRPC master;
-	DFile root = new VirtualDDirectory("%TEMPROOT%", new EveryonePermissions());
+	private volatile DFile root = new VirtualDDirectory("%TEMPROOT%",
+			new EveryonePermissions());
 	private final Periodic updater = new Periodic(500, "VFS update thread") {
 		@Override protected void fire() {
 			root = master.downloadMetadata();
