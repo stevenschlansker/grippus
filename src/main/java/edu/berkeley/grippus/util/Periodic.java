@@ -11,7 +11,7 @@ public abstract class Periodic implements Runnable {
 		runner.setName(name);
 		runner.start();
 	}
-	protected abstract void tick();
+	protected abstract void fire();
 	@Override
 	public void run() {
 		while(true) {
@@ -21,7 +21,7 @@ public abstract class Periodic implements Runnable {
 				LOG.error("Someone interrupted my precious \""+runner.getName()+"\" thread, dying!", e);
 				return;
 			}
-			tick();
+			fire();
 		}
 	}
 }

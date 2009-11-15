@@ -9,7 +9,7 @@ public class SlaveVFS extends VFS {
 	private final NodeMasterRPC master;
 	DFile root = new VirtualDDirectory("%TEMPROOT%", new EveryonePermissions());
 	private final Periodic updater = new Periodic(500, "VFS update thread") {
-		@Override protected void tick() {
+		@Override protected void fire() {
 			root = master.downloadMetadata();
 		}
 	};
