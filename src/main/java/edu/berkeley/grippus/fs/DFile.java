@@ -30,7 +30,7 @@ public abstract class DFile implements Serializable {
 		if (first.isEmpty() || first.equals("."))
 			return find(pathbits.subList(1, pathbits.size()));
 		DFile child = getChildren().get(first);
-		if (child != null) 
+		if (child != null)
 			if (pathbits.size() == 1)
 				return child;
 			else
