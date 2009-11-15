@@ -1,5 +1,6 @@
 package edu.berkeley.grippus.fs;
 
+import java.io.File;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
@@ -20,5 +21,27 @@ public abstract class VFS {
 	}
 	public DFile getMetadata() {
 		return getRoot();
+	}
+
+	public Errno copyRecursive(String src, DFileSpec dest) {
+		File srcRoot = new File(src);
+		if (!srcRoot.isDirectory())
+			return copyFile(src, dest);
+		Errno result = getRoot().mkdir(dest.getPath(),
+				new EveryonePermissions());
+		if (result != Errno.SUCCESS)
+			return result;
+		for (File child : srcRoot.listFiles()) {
+			result = copyRecursive(child.getAbsolutePath(), new DFileSpec(dest
+					.getPath()
+					+ "/" + child.getName()));
+			if (result != Errno.SUCCESS)
+				return result;
+		}
+		return Errno.SUCCESS;
+	}
+
+	private Errno copyFile(String src, DFileSpec dest) {
+		throw new AssertionError("Not implemented");
 	}
 }

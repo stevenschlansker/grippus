@@ -393,7 +393,7 @@ public class Node {
 	}
 
 	public Errno share(DFileSpec dfs, String realPath) {
-		throw new AssertionError("Not implemented");
+		return vfs.copyRecursive(realPath, dfs);
 	}
 
 	public Permission defaultPermissions() {
