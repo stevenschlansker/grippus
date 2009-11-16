@@ -1,4 +1,4 @@
-package edu.berkeley.grippus.fs;
+package edu.berkeley.grippus.fs.perm;
 
 import edu.berkeley.grippus.server.NodeRef;
 

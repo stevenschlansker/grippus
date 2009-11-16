@@ -3,6 +3,8 @@ package edu.berkeley.grippus.fs;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.berkeley.grippus.fs.perm.Permission;
+
 public abstract class VirtualDFile extends DFile {
 	private static final long serialVersionUID = 1L;
 	private final Map<String, DFile> children = new HashMap<String, DFile>();

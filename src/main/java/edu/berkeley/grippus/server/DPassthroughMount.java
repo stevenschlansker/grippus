@@ -8,7 +8,7 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DMount;
-import edu.berkeley.grippus.fs.Permission;
+import edu.berkeley.grippus.fs.perm.Permission;
 
 public class DPassthroughMount extends DMount {
 	private static final long serialVersionUID = 1L;

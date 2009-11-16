@@ -12,7 +12,7 @@ import com.caucho.hessian.server.HessianServlet;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
-import edu.berkeley.grippus.fs.Permission;
+import edu.berkeley.grippus.fs.perm.Permission;
 
 public class NodeMasterRPCImpl extends HessianServlet implements NodeMasterRPC {
 	private static final long serialVersionUID = 1L;

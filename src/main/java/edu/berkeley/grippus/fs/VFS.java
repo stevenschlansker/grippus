@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.perm.EveryonePermissions;
+import edu.berkeley.grippus.fs.perm.Permission;
 
 public abstract class VFS {
 	public abstract Errno mount(DFileSpec where, String realPath, Permission perm);

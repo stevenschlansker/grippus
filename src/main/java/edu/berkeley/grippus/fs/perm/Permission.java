@@ -1,4 +1,4 @@
-package edu.berkeley.grippus.fs;
+package edu.berkeley.grippus.fs.perm;
 
 import java.io.Serializable;
 

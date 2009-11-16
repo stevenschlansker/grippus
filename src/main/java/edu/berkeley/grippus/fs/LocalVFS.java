@@ -2,6 +2,7 @@ package edu.berkeley.grippus.fs;
 
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.server.DPassthroughMount;
 
 public class LocalVFS extends VFS {

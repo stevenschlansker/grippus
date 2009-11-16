@@ -6,6 +6,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.perm.Permission;
 
 public class VirtualDDirectory extends VirtualDFile {
 	private static final long serialVersionUID = 1L;

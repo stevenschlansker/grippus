@@ -5,7 +5,7 @@ import java.util.Set;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
-import edu.berkeley.grippus.fs.Permission;
+import edu.berkeley.grippus.fs.perm.Permission;
 
 public interface NodeMasterRPC {
 	/** joinCluster sends a join request which will add this NodeRPC to the 

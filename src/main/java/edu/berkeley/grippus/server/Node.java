@@ -23,11 +23,13 @@ import com.caucho.hessian.client.HessianRuntimeException;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
-import edu.berkeley.grippus.fs.DPermission;
 import edu.berkeley.grippus.fs.LocalVFS;
-import edu.berkeley.grippus.fs.Permission;
 import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
+import edu.berkeley.grippus.fs.perm.DPermission;
+import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.LocalFilesystemStorage;
+import edu.berkeley.grippus.storage.Storage;
 
 public class Node {
 	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER, INITIALIZING }
@@ -46,6 +48,7 @@ public class Node {
 	private String ipAddress;
 	private String myNodeURL;
 	private final NodeRef nodeRef;
+	private final Storage storage = new LocalFilesystemStorage();
 
 	private VFS vfs = new LocalVFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();

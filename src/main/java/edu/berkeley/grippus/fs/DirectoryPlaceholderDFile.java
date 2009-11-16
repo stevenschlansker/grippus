@@ -1,6 +1,7 @@
 package edu.berkeley.grippus.fs;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.perm.Permission;
 
 public class DirectoryPlaceholderDFile extends VirtualDFile {
 	private static final long serialVersionUID = 1L;

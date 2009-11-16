@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.fs.perm.UndefinedPermissions;
 
 public abstract class DFile implements Serializable {
 	private static final long serialVersionUID = 1L;
