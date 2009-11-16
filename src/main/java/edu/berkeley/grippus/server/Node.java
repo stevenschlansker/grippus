@@ -419,4 +419,8 @@ public class Node {
 	public String getNodeRef() {
 		return nodeRef.toString();
 	}
+
+	public Storage getStorage() {
+		return storage;
+	}
 }
