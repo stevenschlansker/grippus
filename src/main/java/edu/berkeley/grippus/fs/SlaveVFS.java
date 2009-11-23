@@ -1,6 +1,10 @@
 package edu.berkeley.grippus.fs;
 
 
+import org.apache.log4j.Logger;
+
+import com.caucho.hessian.client.HessianRuntimeException;
+
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.EveryonePermissions;
 import edu.berkeley.grippus.fs.perm.Permission;
@@ -9,6 +13,7 @@ import edu.berkeley.grippus.util.Periodic;
 
 public class SlaveVFS extends VFS {
 	private final NodeMasterRPC master;
+	private static final Logger LOG = Logger.getLogger(SlaveVFS.class);
 	private volatile DFile root = new VirtualDDirectory("%TEMPROOT%",
 			new EveryonePermissions());
 	@SuppressWarnings("unused")
@@ -21,11 +26,12 @@ public class SlaveVFS extends VFS {
 		this.master = master;
 	}
 	@Override
-	public Errno mkdir(DFileSpec dir, Permission perm) {
+	public synchronized Errno mkdir(DFileSpec dir, Permission perm) {
 		return master.mkdir(dir, perm);
 	}
 	@Override
-	public Errno mount(DFileSpec where, String realPath, Permission perm) {
+	public synchronized Errno mount(DFileSpec where, String realPath,
+			Permission perm) {
 		return Errno.ERROR_NOT_SUPPORTED; // TODO implement
 	}
 	@Override
@@ -34,13 +40,17 @@ public class SlaveVFS extends VFS {
 	}
 
 	@Override
-	public Errno addEntry(DFile parent, DFile child) {
+	public synchronized Errno addEntry(DFile parent, DFile child) {
 		return master.addEntry(parent, child);
 	}
 
 	@Override
 	protected synchronized void sync() {
 		super.sync();
-		root = master.downloadMetadata();
+		try {
+			root = master.downloadMetadata();
+		} catch (HessianRuntimeException e) {
+			LOG.error("Could not download metadata!", e);
+		}
 	}
 }
