@@ -8,7 +8,6 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DMount;
-import edu.berkeley.grippus.fs.PersistentDFile;
 import edu.berkeley.grippus.fs.perm.Permission;
 
 public class DPassthroughMount extends DMount {
@@ -48,7 +47,7 @@ public class DPassthroughMount extends DMount {
 	}
 
 	@Override
-	public Errno addEntry(PersistentDFile persistentDFile) {
+	public Errno addEntry(DFile persistentDFile) {
 		return Errno.ERROR_READ_ONLY;
 	}
 
@@ -78,7 +77,9 @@ public class DPassthroughMount extends DMount {
 		@Override public Errno replaceEntry(DFile oldEntry, DMount newMount) {
 			return Errno.ERROR_READ_ONLY;
 		}
-		@Override public Errno addEntry(PersistentDFile persistentDFile) {
+
+		@Override
+		public Errno addEntry(DFile persistentDFile) {
 			return Errno.ERROR_NOT_SUPPORTED;
 		}
 

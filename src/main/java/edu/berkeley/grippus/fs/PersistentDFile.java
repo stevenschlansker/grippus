@@ -39,7 +39,7 @@ public class PersistentDFile extends DFile {
 		return Errno.ERROR_NOT_SUPPORTED;
 	}
 	@Override
-	public Errno addEntry(PersistentDFile persistentDFile) {
+	public Errno addEntry(DFile persistentDFile) {
 		return Errno.ERROR_NOT_SUPPORTED;
 	}
 

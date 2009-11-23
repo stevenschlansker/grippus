@@ -75,7 +75,7 @@ public abstract class DFile implements Serializable {
 
 	public abstract Errno replaceEntry(DFile oldEntry, DMount newMount);
 
-	public abstract Errno addEntry(PersistentDFile persistentDFile);
+	public abstract Errno addEntry(DFile persistentDFile);
 
 	public abstract DFile getParent();
 

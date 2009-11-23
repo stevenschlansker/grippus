@@ -32,7 +32,8 @@ public abstract class VFS {
 		File srcRoot = new File(src);
 		if (!srcRoot.isDirectory())
 			return copyFile(srcRoot, dest, storage);
-		Errno result = resolve(dest).mkdir(new EveryonePermissions());
+		Errno result = mkdir(dest, new EveryonePermissions());
+		sync();
 		if (result != Errno.SUCCESS && result != Errno.ERROR_EXISTS)
 			return result;
 		for (File child : srcRoot.listFiles()) {
@@ -51,7 +52,7 @@ public abstract class VFS {
 			DFile df = resolve(dest);
 			if (df.exists())
 				return Errno.SUCCESS;
-			return df.getParent().addEntry(
+			return addEntry(df.getParent(),
 					new PersistentDFile(storage.chunkify(src), src.getName(),
 							new EveryonePermissions()));
 		} catch (FileNotFoundException e) {
@@ -60,4 +61,9 @@ public abstract class VFS {
 			return Errno.ERROR_IO;
 		}
 	}
+
+	public Errno addEntry(DFile parent, DFile child) {
+		return parent.addEntry(child);
+	}
+	protected void sync() { /* master VFS is always in sync */ }
 }
