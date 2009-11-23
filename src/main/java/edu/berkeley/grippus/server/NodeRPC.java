@@ -1,6 +1,7 @@
 package edu.berkeley.grippus.server;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.storage.Block;
 
 public interface NodeRPC {
 	/** Returns the master NodeRPC of this NodeRPC's cluster
@@ -14,5 +15,8 @@ public interface NodeRPC {
 	 *  Should only be called by the MasterNode to a slave. 
 	 */
 	boolean advertiseLeavingNode(String leaverURL);
+	
+	byte[] getFile(Block block, int blockLength);
+	
 	String getNodeRef();
 }

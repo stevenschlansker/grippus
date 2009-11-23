@@ -1,7 +1,10 @@
 package edu.berkeley.grippus.server;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
@@ -30,6 +33,7 @@ import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.fs.perm.DPermission;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 import edu.berkeley.grippus.storage.LocalFilesystemStorage;
 import edu.berkeley.grippus.storage.Storage;
 import edu.berkeley.grippus.util.Pair;
@@ -205,7 +209,45 @@ public class Node {
 		clusterMembers.put(newNodeURL,newNode);
 		return Errno.SUCCESS;
 	}
+	
+	public synchronized Errno getFileFromNode(Block block, int blockLength, String nodeURL) {
+		NodeRPC otherNode;
+		try {
+			HessianProxyFactory factory = new HessianProxyFactory();
+			factory.setUser("grippus");
+			factory.setPassword(clusterPassword);
+			otherNode = (NodeRPC) factory.create(NodeRPC.class,nodeURL);
+			byte[] fileData = otherNode.getFile(block, blockLength);
+			if (fileData != null) {
+				File f = bs.dirForDigest(block.getDigest());
+				FileWriter fw = new FileWriter(f);
+				fw.write(new String(fileData));
+			} else {
+				return Errno.ERROR_FILE_NOT_FOUND;
+			}
+		} catch (MalformedURLException e) {
+			logger.error("Malformed URL exception for new node URL");
+			return Errno.ERROR_ILLEGAL_ARGUMENT;
+		} catch (IOException e) {
+			logger.error("Writing the file failed");
+			return Errno.ERROR_EXISTS;
+		}
+//			newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL); 
+		
+		return Errno.SUCCESS;
+	}
 
+	public synchronized byte[] getFile(Block block, int length) {
+		try {
+			InputStream input = bs.readBlock(block);
+			byte[] data = new byte[length];
+			input.read(data);
+			return data;
+		} catch (IOException e) {
+			logger.error("Io exception from reading the block");
+		}
+		return null;
+	}
 	public Boolean isMaster() {
 		if (state == NodeState.MASTER) {
 			return true;

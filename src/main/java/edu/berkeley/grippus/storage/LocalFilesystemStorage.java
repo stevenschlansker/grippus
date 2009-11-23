@@ -16,6 +16,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 import org.apache.log4j.lf5.util.StreamUtils;
 
+import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.server.Node;
 import edu.berkeley.grippus.util.FileSize;
 
@@ -26,6 +27,7 @@ public class LocalFilesystemStorage implements Storage {
 	private static final Logger LOG = Logger
 	.getLogger(LocalFilesystemStorage.class);
 	private final File root;
+	private final Node myNode;
 
 	public LocalFilesystemStorage(Node node, File root) {
 		if (!root.exists())
@@ -37,7 +39,9 @@ public class LocalFilesystemStorage implements Storage {
 		"store.maxsize"));
 		LOG.debug("Using up to " + maxStoreSize + " bytes for storage...");
 		this.root = root;
+		this.myNode = node;
 	}
+	
 	@Override public BlockList chunkify(File src) throws IOException {
 		FileInputStream fis = new FileInputStream(src);
 		long length = src.length();
@@ -59,7 +63,7 @@ public class LocalFilesystemStorage implements Storage {
 				byte[] digest = md.digest();
 				buf.position(off);
 				saveChunk(digest, buf);
-				result.append(new Block(digest, limit));
+				result.append(new Block(digest, limit, myNode.getIpAddress()));
 			}
 		}
 		return result;
@@ -88,11 +92,11 @@ public class LocalFilesystemStorage implements Storage {
 					+ storage.getAbsolutePath());
 		}
 	}
-	private String nameForDigest(byte[] digest) {
+	public String nameForDigest(byte[] digest) {
 		return Hex.encodeHexString(digest);
 	}
 
-	private File dirForDigest(byte[] digest) {
+	public File dirForDigest(byte[] digest) {
 		return new File(new File(new File(root, String.format("%02X%02X",
 				digest[0], digest[1])), String.format("%02X%02X", digest[2],
 						digest[3])), String.format("%02X%02X", digest[4], digest[5]));
@@ -101,8 +105,22 @@ public class LocalFilesystemStorage implements Storage {
 	@Override
 	public InputStream readBlock(Block from) throws IOException {
 		try {
-			return new FileInputStream(new File(dirForDigest(from.digest),
-					nameForDigest(from.digest)));
+			File f = dirForDigest(from.getDigest());
+			if (!f.exists()) {
+				for (int i = 0; i < from.remoteNodes.size(); i++) {
+					String nodeURL = from.remoteNodes.get(i);
+					while(true) {
+						Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
+						if (state == Errno.SUCCESS) {
+							break;
+						}
+					}
+				}
+				//This is an error, what to throw? you should not reach this state.
+			} 
+			return new FileInputStream(new File(dirForDigest(from.getDigest()),
+					nameForDigest(from.getDigest())));	
+			
 		} catch (FileNotFoundException e) {
 			LOG.error("Could not find block " + from + "!!!!");
 			throw new IOException("Corrupted file", e);
