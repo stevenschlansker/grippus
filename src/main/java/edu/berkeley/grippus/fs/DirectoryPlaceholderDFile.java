@@ -33,4 +33,19 @@ public class DirectoryPlaceholderDFile extends VirtualDFile {
 	public Errno replaceEntry(DFile oldEntry, DMount newMount) {
 		return Errno.ERROR_NOT_SUPPORTED;
 	}
+
+	@Override
+	public Errno addEntry(PersistentDFile persistentDFile) {
+		return Errno.ERROR_NOT_SUPPORTED;
+	}
+
+	@Override
+	public DFile getParent() {
+		return parent;
+	}
+
+	@Override
+	public boolean exists() {
+		return false;
+	}
 }

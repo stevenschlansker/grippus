@@ -1,5 +1,9 @@
 package edu.berkeley.grippus.storage;
 
-public interface Storage {
+import java.io.File;
+import java.io.IOException;
 
+
+public interface Storage {
+	BlockList chunkify(File src) throws IOException;
 }

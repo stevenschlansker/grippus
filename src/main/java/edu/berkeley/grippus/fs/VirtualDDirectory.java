@@ -11,7 +11,7 @@ import edu.berkeley.grippus.fs.perm.Permission;
 public class VirtualDDirectory extends VirtualDFile {
 	private static final long serialVersionUID = 1L;
 	private final DFile parent;
-	
+
 	public VirtualDDirectory(String name, DFile parent, Permission perm) {
 		super(name, perm);
 		this.parent = parent;
@@ -38,7 +38,7 @@ public class VirtualDDirectory extends VirtualDFile {
 	@Override
 	public Errno mkdir(String name, Permission perm) {
 		if (getChildren().containsKey(name))
-			return Errno.ERROR_FILE_NOT_FOUND;
+			return Errno.ERROR_EXISTS;
 		if (!nameValid(name))
 			return Errno.ERROR_BAD_NAME;
 		getChildren().put(name, new VirtualDDirectory(name, this, perm));
@@ -62,5 +62,16 @@ public class VirtualDDirectory extends VirtualDFile {
 				return input.getValue().equals(oldEntry);
 			}
 		}).iterator().next().getKey();
+	}
+
+	@Override
+	public Errno addEntry(PersistentDFile file) {
+		getChildren().put(file.getName(), file);
+		return Errno.SUCCESS;
+	}
+
+	@Override
+	public DFile getParent() {
+		return parent;
 	}
 }

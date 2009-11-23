@@ -8,13 +8,14 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DMount;
+import edu.berkeley.grippus.fs.PersistentDFile;
 import edu.berkeley.grippus.fs.perm.Permission;
 
 public class DPassthroughMount extends DMount {
 	private static final long serialVersionUID = 1L;
 	private final PassthroughFile root;
 	private final File mountedDirectory;
-	
+
 	public DPassthroughMount(DFileSpec dfs, String basePath, DFile parent, Permission perm) {
 		super(dfs.name(), perm);
 		mountedDirectory = new File(basePath);
@@ -40,12 +41,22 @@ public class DPassthroughMount extends DMount {
 	public Errno replaceEntry(DFile oldEntry, DMount newMount) {
 		return Errno.ERROR_NOT_SUPPORTED;
 	}
-	
+
 	@Override
 	public Map<String, DFile> getChildren() {
 		return root.getChildren();
 	}
-	
+
+	@Override
+	public Errno addEntry(PersistentDFile persistentDFile) {
+		return Errno.ERROR_READ_ONLY;
+	}
+
+	@Override
+	public DFile getParent() {
+		return root.getParent();
+	}
+
 	private class PassthroughFile extends DFile {
 		private static final long serialVersionUID = 1L;
 		private final File me;
@@ -67,6 +78,9 @@ public class DPassthroughMount extends DMount {
 		@Override public Errno replaceEntry(DFile oldEntry, DMount newMount) {
 			return Errno.ERROR_READ_ONLY;
 		}
+		@Override public Errno addEntry(PersistentDFile persistentDFile) {
+			return Errno.ERROR_NOT_SUPPORTED;
+		}
 
 		@Override
 		public Map<String, DFile> getChildren() {
@@ -77,6 +91,11 @@ public class DPassthroughMount extends DMount {
 			result.put(".", this);
 			result.put("..", parent);
 			return result;
+		}
+
+		@Override
+		public DFile getParent() {
+			return parent;
 		}
 	}
 }

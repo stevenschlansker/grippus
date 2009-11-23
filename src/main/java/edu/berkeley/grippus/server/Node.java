@@ -39,7 +39,7 @@ public class Node {
 	private final String name;
 	private final File serverRoot;
 	private final Configuration conf;
-	private final BackingStore bs;
+	private final Storage bs;
 	private final Server jetty;
 	private UUID clusterID;
 	private String clusterName;
@@ -48,7 +48,6 @@ public class Node {
 	private String ipAddress;
 	private String myNodeURL;
 	private final NodeRef nodeRef;
-	private final Storage storage = new LocalFilesystemStorage();
 
 	private VFS vfs = new LocalVFS();
 	private final HessianProxyFactory factory = new HessianProxyFactory();
@@ -70,7 +69,7 @@ public class Node {
 		conf.set("node.name", name);
 		nodeRef = conf.get("node.ref", new NodeRef());
 		maybeInitializeConfig(conf);
-		bs = new BackingStore(this, new File(serverRoot, "store"));
+		bs = new LocalFilesystemStorage(this, new File(serverRoot, "store"));
 		//System.setProperty("org.eclipse.jetty.util.log.DEBUG", "true");
 		port = Integer.parseInt(conf.getString("node.port", "11110"));
 		jetty = new Server(port);
@@ -181,10 +180,6 @@ public class Node {
 	private void maybeInitialize(Configuration conf, ConsoleReader inp, String key, String prompt) throws IOException {
 		if (conf.getString(key) == null)
 			conf.set(key, inp.readLine(prompt));
-	}
-
-	public BackingStore getBackingStore() {
-		return bs;
 	}
 
 	public synchronized void terminate() {
@@ -396,7 +391,7 @@ public class Node {
 	}
 
 	public Errno share(DFileSpec dfs, String realPath) {
-		return vfs.copyRecursive(realPath, dfs);
+		return vfs.copyRecursive(realPath, dfs, getStorage());
 	}
 
 	public Permission defaultPermissions() {
@@ -421,6 +416,6 @@ public class Node {
 	}
 
 	public Storage getStorage() {
-		return storage;
+		return bs;
 	}
 }

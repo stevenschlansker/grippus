@@ -48,7 +48,10 @@ public abstract class DFile implements Serializable {
 	}
 
 	protected boolean nameValid(String name) {
-		return name.matches("[a-zA-Z_][a-zA-Z_0-9]+");
+		return name.matches("[a-z0-9A-Z_\\.-][a-zA-Z_0-9\\.-]*");
+	}
+	public String getName() {
+		return name;
 	}
 
 	@Override
@@ -69,4 +72,12 @@ public abstract class DFile implements Serializable {
 	public abstract boolean isDirectory();
 
 	public abstract Errno replaceEntry(DFile oldEntry, DMount newMount);
+
+	public abstract Errno addEntry(PersistentDFile persistentDFile);
+
+	public abstract DFile getParent();
+
+	public boolean exists() {
+		return true;
+	}
 }
