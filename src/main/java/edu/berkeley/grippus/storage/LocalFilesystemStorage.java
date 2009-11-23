@@ -105,8 +105,8 @@ public class LocalFilesystemStorage implements Storage {
 
 	public void createFile(byte[] digest, byte[] fileData) throws IOException {
 		File f = dirForDigest(digest);
-		FileWriter fw = new FileWriter(f);
-		fw.write(new String(fileData));
+		ByteBuffer b = ByteBuffer.wrap(fileData);
+		this.saveChunk(digest,b);
 	}
 	
 	@Override
