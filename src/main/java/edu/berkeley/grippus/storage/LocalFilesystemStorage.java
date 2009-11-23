@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -63,7 +64,7 @@ public class LocalFilesystemStorage implements Storage {
 				byte[] digest = md.digest();
 				buf.position(off);
 				saveChunk(digest, buf);
-				result.append(new Block(digest, limit, myNode.getIpAddress()));
+				result.append(new Block(digest, limit, myNode.getMyNodeURL()));
 			}
 		}
 		return result;
@@ -102,6 +103,12 @@ public class LocalFilesystemStorage implements Storage {
 						digest[3])), String.format("%02X%02X", digest[4], digest[5]));
 	}
 
+	public void createFile(byte[] digest, byte[] fileData) throws IOException {
+		File f = dirForDigest(digest);
+		FileWriter fw = new FileWriter(f);
+		fw.write(new String(fileData));
+	}
+	
 	@Override
 	public InputStream readBlock(Block from) throws IOException {
 		try {
@@ -109,11 +116,9 @@ public class LocalFilesystemStorage implements Storage {
 			if (!f.exists()) {
 				for (int i = 0; i < from.remoteNodes.size(); i++) {
 					String nodeURL = from.remoteNodes.get(i);
-					while(true) {
-						Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
-						if (state == Errno.SUCCESS) {
-							break;
-						}
+					Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
+					if (state == Errno.SUCCESS) {
+						break;
 					}
 				}
 				//This is an error, what to throw? you should not reach this state.

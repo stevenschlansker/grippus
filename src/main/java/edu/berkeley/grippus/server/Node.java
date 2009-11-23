@@ -83,7 +83,7 @@ public class Node {
 		try {
 			InetAddress thisIp = InetAddress.getLocalHost();
 			this.setIpAddress(thisIp.getHostAddress());
-			this.myNodeURL = "http://"+ getIpAddress()+":"+getPort()+"/node";
+			this.setMyNodeURL("http://"+ getIpAddress()+":"+getPort()+"/node");
 		} catch (UnknownHostException e) {
 			logger.error("Unknown host", e);
 			throw new RuntimeException("Node initialization fails", e);
@@ -219,9 +219,7 @@ public class Node {
 			otherNode = (NodeRPC) factory.create(NodeRPC.class,nodeURL);
 			byte[] fileData = otherNode.getFile(block, blockLength);
 			if (fileData != null) {
-				File f = bs.dirForDigest(block.getDigest());
-				FileWriter fw = new FileWriter(f);
-				fw.write(new String(fileData));
+				bs.createFile(block.getDigest(),fileData);
 			} else {
 				return Errno.ERROR_FILE_NOT_FOUND;
 			}
@@ -287,7 +285,7 @@ public class Node {
 	public synchronized void disconnect() {
 		if(masterServer != null){
 			try {
-				masterServer.leaveCluster(this.myNodeURL);
+				masterServer.leaveCluster(this.getMyNodeURL());
 			} catch (HessianRuntimeException e) {
 				// TODO figure out some saner way to handle disappearing nodes
 			}
@@ -422,7 +420,7 @@ public class Node {
 				String clusterUUIDString = master.getClusterUUID();
 				UUID clusterID = UUID.fromString(clusterUUIDString);
 				setClusterID(clusterID);
-				master.joinCluster(myNodeURL);
+				master.joinCluster(getMyNodeURL());
 				state = NodeState.SLAVE;
 				vfs = new SlaveVFS(master);
 			} catch (MalformedURLException e) {
@@ -450,7 +448,7 @@ public class Node {
 		Set<String> otherNodes = new HashSet<String>(clusterMembers.keySet());
 		addPeer(newNodeURL);
 		NodeRPC newNode = clusterMembers.get(newNodeURL);
-		newNode.advertiseJoiningNode(myNodeURL);
+		newNode.advertiseJoiningNode(getMyNodeURL());
 		for (String node : otherNodes)
 			newNode.advertiseJoiningNode(node);
 		return Errno.SUCCESS;
@@ -476,5 +474,13 @@ public class Node {
 		} catch (IOException e) {
 			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
 		}
+	}
+
+	private void setMyNodeURL(String myNodeURL) {
+		this.myNodeURL = myNodeURL;
+	}
+
+	public String getMyNodeURL() {
+		return myNodeURL;
 	}
 }
