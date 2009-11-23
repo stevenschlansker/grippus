@@ -35,7 +35,7 @@ public class DirectoryPlaceholderDFile extends VirtualDFile {
 	}
 
 	@Override
-	public Errno addEntry(PersistentDFile persistentDFile) {
+	public Errno addEntry(DFile persistentDFile) {
 		return Errno.ERROR_NOT_SUPPORTED;
 	}
 

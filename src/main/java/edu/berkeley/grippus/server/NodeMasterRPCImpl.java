@@ -70,4 +70,9 @@ public class NodeMasterRPCImpl extends HessianServlet implements NodeMasterRPC {
 	public Errno mkdir(DFileSpec dir, Permission perm) {
 		return myNode.getVFS().mkdir(dir, perm);
 	}
+
+	@Override
+	public Errno addEntry(DFile parent, DFile child) {
+		return myNode.getVFS().addEntry(parent, child);
+	}
 }

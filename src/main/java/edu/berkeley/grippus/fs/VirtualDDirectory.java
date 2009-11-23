@@ -2,6 +2,8 @@ package edu.berkeley.grippus.fs;
 
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
@@ -9,6 +11,7 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
 
 public class VirtualDDirectory extends VirtualDFile {
+	private static final Logger LOG = Logger.getLogger(VirtualDDirectory.class);
 	private static final long serialVersionUID = 1L;
 	private final DFile parent;
 
@@ -42,6 +45,7 @@ public class VirtualDDirectory extends VirtualDFile {
 		if (!nameValid(name))
 			return Errno.ERROR_BAD_NAME;
 		getChildren().put(name, new VirtualDDirectory(name, this, perm));
+		LOG.info("mkdir " + name + " in " + this);
 		return Errno.SUCCESS;
 	}
 
@@ -65,7 +69,7 @@ public class VirtualDDirectory extends VirtualDFile {
 	}
 
 	@Override
-	public Errno addEntry(PersistentDFile file) {
+	public Errno addEntry(DFile file) {
 		getChildren().put(file.getName(), file);
 		return Errno.SUCCESS;
 	}

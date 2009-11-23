@@ -25,4 +25,5 @@ public interface NodeMasterRPC {
 	public String getClusterUUID();
 	public DFile downloadMetadata();
 	public Errno mkdir(DFileSpec dir, Permission perm);
+	public Errno addEntry(DFile parent, DFile child);
 }

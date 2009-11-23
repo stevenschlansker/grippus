@@ -14,7 +14,7 @@ public class SlaveVFS extends VFS {
 	@SuppressWarnings("unused")
 	private final Periodic updater = new Periodic(500, "VFS update thread") {
 		@Override protected void fire() {
-			root = master.downloadMetadata();
+			sync();
 		}
 	};
 	public SlaveVFS(NodeMasterRPC master) {
@@ -29,7 +29,18 @@ public class SlaveVFS extends VFS {
 		return Errno.ERROR_NOT_SUPPORTED; // TODO implement
 	}
 	@Override
-	protected DFile getRoot() {
+	protected synchronized DFile getRoot() {
 		return root;
+	}
+
+	@Override
+	public Errno addEntry(DFile parent, DFile child) {
+		return master.addEntry(parent, child);
+	}
+
+	@Override
+	protected synchronized void sync() {
+		super.sync();
+		root = master.downloadMetadata();
 	}
 }
