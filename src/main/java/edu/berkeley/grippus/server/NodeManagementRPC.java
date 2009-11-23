@@ -16,5 +16,7 @@ public interface NodeManagementRPC {
 	public DFileSpec canonicalizePath(DFileSpec append);
 	public Errno mount(String cmd, String realPath, String vPath);
 	public Errno share(String cmd, String realPath, String vPath);
-	public Pair<Errno, String> cat(String cmd, DFileSpec dFileSpec);
+	public Pair<Errno, String> cat(String cmd, DFileSpec path);
+
+	public Pair<Errno, String> sha1(String cmd, String algo, DFileSpec path);
 }
