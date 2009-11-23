@@ -42,7 +42,7 @@ public class LocalFilesystemStorage implements Storage {
 		this.root = root;
 		this.myNode = node;
 	}
-	
+
 	@Override public BlockList chunkify(File src) throws IOException {
 		FileInputStream fis = new FileInputStream(src);
 		long length = src.length();
@@ -98,9 +98,9 @@ public class LocalFilesystemStorage implements Storage {
 	}
 
 	public File dirForDigest(byte[] digest) {
-		return new File(new File(new File(root, String.format("%02X%02X",
-				digest[0], digest[1])), String.format("%02X%02X", digest[2],
-						digest[3])), String.format("%02X%02X", digest[4], digest[5]));
+		return new File(new File(new File(root, String.format("%02x%02x",
+				digest[0], digest[1])), String.format("%02x%02x", digest[2],
+				digest[3])), String.format("%02x%02x", digest[4], digest[5]));
 	}
 
 	public void createFile(byte[] digest, byte[] fileData) throws IOException {
@@ -108,7 +108,7 @@ public class LocalFilesystemStorage implements Storage {
 		FileWriter fw = new FileWriter(f);
 		fw.write(new String(fileData));
 	}
-	
+
 	@Override
 	public InputStream readBlock(Block from) throws IOException {
 		try {
@@ -122,10 +122,10 @@ public class LocalFilesystemStorage implements Storage {
 					}
 				}
 				//This is an error, what to throw? you should not reach this state.
-			} 
+			}
 			return new FileInputStream(new File(dirForDigest(from.getDigest()),
-					nameForDigest(from.getDigest())));	
-			
+					nameForDigest(from.getDigest())));
+
 		} catch (FileNotFoundException e) {
 			LOG.error("Could not find block " + from + "!!!!");
 			throw new IOException("Corrupted file", e);
