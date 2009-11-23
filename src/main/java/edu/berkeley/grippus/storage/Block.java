@@ -8,6 +8,12 @@ public class Block implements Serializable {
 	final byte[] digest;
 	final int length;
 
+	@SuppressWarnings("unused") // for Hessian
+	private Block() {
+		digest = null;
+		length = -1;
+	}
+
 	public Block(byte[] digest, int length) {
 		this.digest = Arrays.copyOf(digest, digest.length);
 		this.length = length;
