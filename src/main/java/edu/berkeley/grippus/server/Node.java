@@ -15,6 +15,7 @@ import jline.ConsoleReader;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.apache.log4j.lf5.util.StreamUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -22,6 +23,7 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.LocalVFS;
 import edu.berkeley.grippus.fs.SlaveVFS;
@@ -30,6 +32,7 @@ import edu.berkeley.grippus.fs.perm.DPermission;
 import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.storage.LocalFilesystemStorage;
 import edu.berkeley.grippus.storage.Storage;
+import edu.berkeley.grippus.util.Pair;
 
 public class Node {
 	private enum NodeState { DISCONNECTED, OFFLINE, SLAVE, MASTER, INITIALIZING }
@@ -417,5 +420,19 @@ public class Node {
 
 	public Storage getStorage() {
 		return bs;
+	}
+
+	public Pair<Errno, String> cat(DFileSpec path) {
+		DFile f = getVFS().resolve(path);
+		if (f == null)
+			return new Pair<Errno, String>(Errno.ERROR_FILE_NOT_FOUND, "");
+		try {
+			return new Pair<Errno, String>(Errno.SUCCESS, new String(
+					StreamUtils.getBytes(f.open(getStorage()))));
+		} catch (UnsupportedOperationException e) {
+			return new Pair<Errno, String>(Errno.ERROR_NOT_SUPPORTED, "");
+		} catch (IOException e) {
+			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
+		}
 	}
 }

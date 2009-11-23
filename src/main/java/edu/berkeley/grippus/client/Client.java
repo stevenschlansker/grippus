@@ -15,34 +15,35 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.server.NodeManagementRPC;
+import edu.berkeley.grippus.util.Pair;
 
 public class Client {
 	private final Logger logger = Logger.getLogger(Client.class);
 	private NodeManagementRPC node;
-	
+
 	private DFileSpec cwd = DFileSpec.ROOT;
-	
+
 	public static void main(String[] args) {
 		new Client().run(args);
 	}
-	
+
 	private void run(String[] args) {
 		BasicConfigurator.configure();
-		
+
 		try {
 			ConsoleReader console = new ConsoleReader();
 
 			String port = (args.length > 0 ? args[0] : console.readLine("Port: "));
 			//String pw = console.readLine("Cluster password: ", '*');
-			
+
 			String url = "http://localhost:"+port+"/mgmt";
 			HessianProxyFactory factory = new HessianProxyFactory();
 			//factory.setUser("grippus");
 			//factory.setPassword(pw);
 			node = (NodeManagementRPC) factory.create(NodeManagementRPC.class, url);
-			
+
 			executeCommand(node, "status");
-			
+
 			while(true) {
 				String line = console.readLine("> ");
 				if (line == null || line.isEmpty()) break;
@@ -51,7 +52,7 @@ public class Client {
 				executeCommand(node, cmd[0], (Object[])Arrays.copyOfRange(cmd, 1, cmd.length));
 				if (cmd[0].equalsIgnoreCase("terminate")) break;
 			}
-			
+
 			System.out.println();
 		} catch (IOException e) {
 			logger.error("I/O error", e);
@@ -72,7 +73,7 @@ public class Client {
 		}
 		try {
 			Method m = this.getClass().getMethod(cmd, paramsClass);
-			handleResult(m.invoke(this, (Object[])params));
+			handleResult(m.invoke(this, params));
 			return;
 		} catch (SecurityException e) { // try remote
 		} catch (NoSuchMethodException e) { // try remote
@@ -121,8 +122,14 @@ public class Client {
 	public Errno mkdir(String cmd, String dirname) {
 		return node.mkdir(cmd, cwd.append(dirname));
 	}
-	
+
 	public Errno connectToNetwork(String cmd, String masterURL) {
 		return node.joinCluster(cmd, masterURL, "k");
+	}
+
+	public Errno cat(String cmd, String path) {
+		Pair<Errno, String> result = node.cat(cmd, cwd.append(path));
+		System.out.println(result.cdr());
+		return result.car();
 	}
 }

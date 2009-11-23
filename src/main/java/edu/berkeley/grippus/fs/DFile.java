@@ -1,5 +1,6 @@
 package edu.berkeley.grippus.fs;
 
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.fs.perm.UndefinedPermissions;
+import edu.berkeley.grippus.storage.Storage;
 
 public abstract class DFile implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -79,5 +81,9 @@ public abstract class DFile implements Serializable {
 
 	public boolean exists() {
 		return true;
+	}
+
+	public InputStream open(Storage s) {
+		throw new UnsupportedOperationException("Can't read this file " + this);
 	}
 }

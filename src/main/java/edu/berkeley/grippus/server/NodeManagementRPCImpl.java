@@ -8,6 +8,7 @@ import com.caucho.hessian.server.HessianServlet;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.VFS;
+import edu.berkeley.grippus.util.Pair;
 
 public class NodeManagementRPCImpl extends HessianServlet implements NodeManagementRPC {
 	private static final long serialVersionUID = 1L;
@@ -75,7 +76,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 		DFileSpec dfs = new DFileSpec(vPath);
 		return managedNode.getVFS().mount(dfs, realPath, managedNode.defaultPermissions());
 	}
-	
+
 	public Errno joinCluster(String cmd, String masterURL, String clusterPassword) {
 		return managedNode.connectToServer(masterURL, clusterPassword);
 	}
@@ -84,5 +85,10 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public Errno share(String cmd, String realPath, String vPath) {
 		DFileSpec dfs = new DFileSpec(vPath);
 		return managedNode.share(dfs, realPath);
+	}
+
+	@Override
+	public Pair<Errno, String> cat(String cmd, DFileSpec path) {
+		return managedNode.cat(path);
 	}
 }

@@ -2,8 +2,10 @@ package edu.berkeley.grippus.storage;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.security.MessageDigest;
@@ -64,11 +66,11 @@ public class LocalFilesystemStorage implements Storage {
 	}
 
 	private void saveChunk(byte[] digest, ByteBuffer buf) throws IOException {
-		File dir = fileForDigest(digest);
+		File dir = dirForDigest(digest);
 		if (!dir.exists())
 			if (!dir.mkdirs())
 				throw new IOException("Could not make parents of " + dir);
-		File storage = new File(dir, Hex.encodeHexString(digest));
+		File storage = new File(dir, nameForDigest(digest));
 		if (storage.exists()) {
 			byte[] oldbuf = new byte[buf.remaining()];
 			buf.get(oldbuf);
@@ -86,10 +88,24 @@ public class LocalFilesystemStorage implements Storage {
 					+ storage.getAbsolutePath());
 		}
 	}
+	private String nameForDigest(byte[] digest) {
+		return Hex.encodeHexString(digest);
+	}
 
-	private File fileForDigest(byte[] digest) {
+	private File dirForDigest(byte[] digest) {
 		return new File(new File(new File(root, String.format("%02X%02X",
 				digest[0], digest[1])), String.format("%02X%02X", digest[2],
 						digest[3])), String.format("%02X%02X", digest[4], digest[5]));
+	}
+
+	@Override
+	public InputStream readBlock(Block from) throws IOException {
+		try {
+			return new FileInputStream(new File(dirForDigest(from.digest),
+					nameForDigest(from.digest)));
+		} catch (FileNotFoundException e) {
+			LOG.error("Could not find block " + from + "!!!!");
+			throw new IOException("Corrupted file", e);
+		}
 	}
 }

@@ -1,14 +1,17 @@
 package edu.berkeley.grippus.fs;
 
+import java.io.InputStream;
 import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.storage.BlockList;
+import edu.berkeley.grippus.storage.BlockListInputStream;
+import edu.berkeley.grippus.storage.Storage;
 
 public class PersistentDFile extends DFile {
 	private static final long serialVersionUID = 1L;
-	private static BlockList data;
+	private final BlockList data;
 	public PersistentDFile(BlockList data, String name, Permission perm) {
 		super(name, perm);
 		this.data = data;
@@ -43,5 +46,10 @@ public class PersistentDFile extends DFile {
 	@Override
 	public DFile getParent() {
 		throw new UnsupportedOperationException("Can't get the parent of a file");
+	}
+
+	@Override
+	public InputStream open(Storage s) {
+		return new BlockListInputStream(s, data);
 	}
 }
