@@ -60,7 +60,6 @@ public class Pair<A, B> implements Serializable {
 			return false;
 		Pair<?, ?> other = (Pair<?, ?>) obj;
 		return ((other.car == null && car == null) || (other.car.equals(car)))
-		&& ((other.cdr == null && cdr == null) || (other.cdr
-				.equals(cdr)));
+			&& ((other.cdr == null && cdr == null) || (other.cdr.equals(cdr)));
 	}
 }
