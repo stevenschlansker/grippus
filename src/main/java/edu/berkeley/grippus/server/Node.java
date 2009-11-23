@@ -499,8 +499,9 @@ public class Node {
 			}
 			InputStream is = f.open(getStorage());
 			byte[] buf = new byte[8192];
-			while (is.read(buf) > -1)
-				md.update(buf);
+			int len;
+			while ((len = is.read(buf)) > -1)
+				md.update(buf, 0, len);
 			return new Pair<Errno, String>(Errno.SUCCESS, Hex
 					.encodeHexString(md.digest()));
 		} catch (UnsupportedOperationException e) {
