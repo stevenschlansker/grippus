@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import edu.berkeley.grippus.server.Node;
-
 public class Block implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private final byte[] digest;
