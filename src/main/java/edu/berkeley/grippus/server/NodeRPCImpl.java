@@ -6,6 +6,7 @@ import javax.servlet.ServletException;
 import com.caucho.hessian.server.HessianServlet;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.storage.Block;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	private static final long serialVersionUID = 1L;
@@ -28,6 +29,10 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	public boolean advertiseLeavingNode(String leaverURL) {
 		myNode.removeNodeLocal(leaverURL);
 		return true;
+	}
+	
+	public synchronized byte[] getFile(Block block, int blockLength) {
+		return myNode.getFile(block, blockLength);
 	}
 
 	@Override

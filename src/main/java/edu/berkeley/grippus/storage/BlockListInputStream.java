@@ -31,6 +31,7 @@ public class BlockListInputStream extends InputStream {
 	private InputStream current;
 
 	public BlockListInputStream(final Storage s, BlockList data) {
+		
 		streams = new LinkedList<InputStream>(Collections2.transform(data.getBlocks(),
 				new Function<Block, InputStream>() {
 			@Override public InputStream apply(Block from) {
@@ -45,6 +46,7 @@ public class BlockListInputStream extends InputStream {
 		}));
 		current = streams.poll();
 	}
+	
 
 	@Override
 	public int read() throws IOException {
