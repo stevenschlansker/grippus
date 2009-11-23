@@ -24,7 +24,7 @@ public abstract class VFS {
 		if (path.getPath().equals("/")) return getRoot();
 		return getRoot().find(path);
 	}
-	public DFile getMetadata() {
+	public synchronized DFile getMetadata() {
 		return getRoot();
 	}
 
