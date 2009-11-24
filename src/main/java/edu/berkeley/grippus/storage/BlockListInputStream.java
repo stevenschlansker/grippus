@@ -50,7 +50,7 @@ public class BlockListInputStream extends InputStream {
 		// isntead of trying to return input streams.
 		// just make a series of input streams.
 		
-
+		streams = new LinkedList<InputStream>();
 		ConcurrentLinkedQueue<Block> validBlocks = new ConcurrentLinkedQueue<Block>(data.getBlocks());
 		class BlockFetcher implements Runnable {
 			ConcurrentLinkedQueue<Block> queue;
@@ -63,23 +63,23 @@ public class BlockListInputStream extends InputStream {
 			
 			@Override
 			public void run() {
-				if (!this.queue.isEmpty()) {
+				while (!this.queue.isEmpty()) {
 					Block b = this.queue.poll();
 					try {
 						s.readBlock(b);
+						Thread.sleep(5000);
 					} catch (IOException e) {
 						this.queue.offer(b);
+					} catch (InterruptedException e) {
+						
 					}
-					
-				} else {
-					
-				}
+				} 
 			}
 		}
 		
 		ExecutorService threadExecutor = Executors.newFixedThreadPool(5);
 		
-		while(!validBlocks.isEmpty()) {
+		for (int i = 0; i < validBlocks.size(); i++) {
 			BlockFetcher bf = new BlockFetcher(validBlocks,s);
 			threadExecutor.execute(bf);
 		}
@@ -95,7 +95,9 @@ public class BlockListInputStream extends InputStream {
 		List<Block> blocks = data.getBlocks();
 		for (int i = 0; i < data.getBlocks().size(); i++) {
 			try {
-				streams.add(s.readBlock(blocks.get(i)));
+				Block b = blocks.get(i);
+				InputStream stream = s.readBlock(b);
+				streams.add(s.readBlock(b));
 			} catch (IOException e) {
 				streams.add(new CorruptedBlockInputStream(blocks.get(i).length));
 			}
