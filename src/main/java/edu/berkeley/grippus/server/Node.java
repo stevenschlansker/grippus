@@ -6,7 +6,8 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +16,7 @@ import java.util.Map.Entry;
 
 import jline.ConsoleReader;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.lf5.util.StreamUtils;
@@ -208,7 +210,7 @@ public class Node {
 		clusterMembers.put(newNodeURL,newNode);
 		return Errno.SUCCESS;
 	}
-	
+
 	public synchronized Errno getFileFromNode(Block block, int blockLength, String nodeURL) {
 		NodeRPC otherNode;
 		try {
@@ -229,8 +231,8 @@ public class Node {
 			logger.error("Writing the file failed");
 			return Errno.ERROR_EXISTS;
 		}
-//			newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL); 
-		
+		//			newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+
 		return Errno.SUCCESS;
 	}
 
@@ -481,5 +483,31 @@ public class Node {
 
 	public String getMyNodeURL() {
 		return myNodeURL;
+	}
+
+	public Pair<Errno, String> sha1(String algo, DFileSpec path) {
+		DFile f = getVFS().resolve(path);
+		if (f == null)
+			return new Pair<Errno, String>(Errno.ERROR_FILE_NOT_FOUND, "");
+		try {
+			MessageDigest md;
+			try {
+				md = MessageDigest.getInstance(algo.toUpperCase());
+			} catch (NoSuchAlgorithmException e) {
+				return new Pair<Errno, String>(Errno.ERROR_ILLEGAL_ARGUMENT,
+						"Bad digest algorithm " + algo);
+			}
+			InputStream is = f.open(getStorage());
+			byte[] buf = new byte[8192];
+			int len;
+			while ((len = is.read(buf)) > -1)
+				md.update(buf, 0, len);
+			return new Pair<Errno, String>(Errno.SUCCESS, Hex
+					.encodeHexString(md.digest()));
+		} catch (UnsupportedOperationException e) {
+			return new Pair<Errno, String>(Errno.ERROR_NOT_SUPPORTED, "");
+		} catch (IOException e) {
+			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
+		}
 	}
 }

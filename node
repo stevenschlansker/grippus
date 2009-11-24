@@ -1,2 +1,2 @@
 #!/bin/sh
-exec mvn exec:java -e -Dexec.mainClass=edu.berkeley.grippus.server.Node -Dexec.args="$1"
+MAVEN_OPTS=-Xmx512m exec mvn exec:java -e -Dexec.mainClass=edu.berkeley.grippus.server.Node -Dexec.args="$1"

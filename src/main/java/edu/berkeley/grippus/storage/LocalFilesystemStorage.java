@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -105,7 +104,6 @@ public class LocalFilesystemStorage implements Storage {
 	}
 
 	public void createFile(byte[] digest, byte[] fileData) throws IOException {
-		File f = dirForDigest(digest);
 		ByteBuffer b = ByteBuffer.wrap(fileData);
 		this.saveChunk(digest,b);
 	}
