@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.codec.binary.Hex;
@@ -113,6 +114,7 @@ public class LocalFilesystemStorage implements Storage {
 	public InputStream readBlock(Block from) throws IOException {
 		try {
 			File f = dirForDigest(from.getDigest());
+			//For every node we want to create a new thread. 
 			if (!f.exists()) {
 				for (int i = 0; i < from.remoteNodes.size(); i++) {
 					String nodeURL = from.remoteNodes.get(i);
