@@ -5,7 +5,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -29,100 +34,73 @@ public class BlockListInputStream extends InputStream {
 		}
 	}
 
-	private final Queue<InputStream> streams;
+	private Queue<InputStream> streams;
 	private InputStream current;
 
 	public BlockListInputStream(final Storage s, BlockList data) {
-		ArrayList<String> validNodes = (ArrayList) Collections.synchronizedCollection(data.getBlocks().get(0).remoteNodes);
-		int numBlocks = data.getBlocks().size();
-		ArrayList<Block> droppedBlocks = new ArrayList<Block>();
-		droppedBlocks = (ArrayList) Collections.synchronizedList(droppedBlocks);
-		int numValidNodes = validNodes.size();
-		ArrayList<InputStream> blockStreams = (ArrayList) Collections.synchronizedCollection(new ArrayList<InputStream>());
-		for (int i = 0; i < numBlocks; i++) {
-			blockStreams.add(null);
-		}
-		//Based on the # of nodes, you want to split the blocks evenly
-		//Create a new thread for each node and have it work on a set of blocks
-		//Any dropped blocks need to be added to the droppedFiles list
-		//Repeat process on the dropped block list randomizing which nodes gets access?
-//		class BasicThread extends Thread {
-//			@Override
-//			public void run() {
-//				
-//
-//			}
-//			
-//			String nodeURL;
-//			int startIndex, endIndex;
-//			
-//			public void setNode(String nodeURL) {
-//				this.nodeURL = nodeURL;
-//			}
-//			
-//			public void setIndex(int start, int end) {
-//				this.startIndex = start;
-//				this.endIndex = end;
-//			}
-//			
-//			public void setBlocks()
-//		}
+//		ArrayList<String> validNodes = (ArrayList) Collections.synchronizedCollection(data.getBlocks().get(0).remoteNodes);
+//		int numBlocks = data.getBlocks().size();
+//		ArrayList<Block> droppedBlocks = new ArrayList<Block>();
+//		droppedBlocks = (ArrayList) Collections.synchronizedList(droppedBlocks);
+//		int numValidNodes = validNodes.size();
+//		ArrayList<InputStream> blockStreams = (ArrayList) Collections.synchronizedCollection(new ArrayList<InputStream>());
+		// Make a thread pool
+		// Have a job-queue, take a thread and utilize it.
+		// if it fails, throw an exception and log an error. 
+		// isntead of trying to return input streams.
+		// just make a series of input streams.
 		
-	
-		streams = new LinkedList<InputStream>(Collections2.transform(data.getBlocks(),
-				new Function<Block, InputStream>() {
-			@Override public InputStream apply(Block from) {
-				InputStream returnStream = null;
-				class BThread extends Thread {
-					@Override
-					public void run() {
-						try {
-							this.s = storage.readBlock(b);
-						} catch (IOException e) {
-							LOG.error("Could not open block " + b
-									+ ", file is corrupted!", e);
-							this.s = new CorruptedBlockInputStream(b.length);
-						}
-					}
-					
-					Block b;
-					InputStream s;
-					Storage storage;
-					
-					public void setBlock(Block block) {
-						this.b = block;
-					}
-					
-					public void setStream(InputStream s) {
-						this.s = s;
-					}
-					
-					public void setStorage(Storage s) {
-						this.storage = s;
-					}
-				}
-				BThread th = new BThread();
-				th.setBlock(from);
-				th.setStream(returnStream);
-				th.setStorage(s);
-				th.start();
-				
-			  long delayMillis = 5000; // 5 seconds
-			    try {
-			        th.join(delayMillis);
-			    
-			        if (th.isAlive()) {
-			            return returnStream;
-			        } else {
-			            // Finished
-			        }
-			    } catch (InterruptedException e) {
-			        // Thread was interrupted
-			    }
 
-				return returnStream;
+		ConcurrentLinkedQueue<Block> validBlocks = new ConcurrentLinkedQueue<Block>(data.getBlocks());
+		class BlockFetcher implements Runnable {
+			ConcurrentLinkedQueue<Block> queue;
+			Storage s;
+			
+			public BlockFetcher(ConcurrentLinkedQueue<Block> validBlocks, Storage s) {
+				this.queue = validBlocks;
+				this.s = s;
 			}
-		}));
+			
+			@Override
+			public void run() {
+				if (!this.queue.isEmpty()) {
+					Block b = this.queue.poll();
+					try {
+						s.readBlock(b);
+					} catch (IOException e) {
+						this.queue.offer(b);
+					}
+					
+				} else {
+					
+				}
+			}
+		}
+		
+		ExecutorService threadExecutor = Executors.newFixedThreadPool(5);
+		
+		while(!validBlocks.isEmpty()) {
+			BlockFetcher bf = new BlockFetcher(validBlocks,s);
+			threadExecutor.execute(bf);
+		}
+		
+		threadExecutor.shutdown();
+		try {
+			threadExecutor.awaitTermination(1, TimeUnit.DAYS);
+		} catch (InterruptedException e1) {
+			LOG.error("Interrupt exception is bad mojo dojo");
+		}
+		
+		
+		List<Block> blocks = data.getBlocks();
+		for (int i = 0; i < data.getBlocks().size(); i++) {
+			try {
+				streams.add(s.readBlock(blocks.get(i)));
+			} catch (IOException e) {
+				streams.add(new CorruptedBlockInputStream(blocks.get(i).length));
+			}
+		}
+		
 		current = streams.poll();
 	}
 	

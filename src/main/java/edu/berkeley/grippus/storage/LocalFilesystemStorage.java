@@ -12,6 +12,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
@@ -114,14 +115,13 @@ public class LocalFilesystemStorage implements Storage {
 			File f = dirForDigest(from.getDigest());
 			//For every node we want to create a new thread. 
 			if (!f.exists()) {
-				for (int i = 0; i < from.remoteNodes.size(); i++) {
-					String nodeURL = from.remoteNodes.get(i);
-					Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
-					if (state == Errno.SUCCESS) {
-						break;
-					}
+			    Random generator = new Random();
+			    int i = generator.nextInt(from.remoteNodes.size());
+				String nodeURL = from.remoteNodes.get(i);
+				Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
+				if (state != Errno.SUCCESS) {
+					throw new FileNotFoundException("I CAN HAZ FILES?");
 				}
-				//This is an error, what to throw? you should not reach this state.
 			}
 			return new FileInputStream(new File(dirForDigest(from.getDigest()),
 					nameForDigest(from.getDigest())));
@@ -131,4 +131,5 @@ public class LocalFilesystemStorage implements Storage {
 			throw new IOException("Corrupted file", e);
 		}
 	}
+	
 }
