@@ -67,12 +67,12 @@ public class BlockListInputStream extends InputStream {
 					Block b = this.queue.poll();
 					try {
 						s.readBlock(b);
-						Thread.sleep(5000);
+						//Thread.sleep(5000);
 					} catch (IOException e) {
 						this.queue.offer(b);
-					} catch (InterruptedException e) {
+					}// catch (InterruptedException e) {
 						
-					}
+					//}
 				} 
 			}
 		}
