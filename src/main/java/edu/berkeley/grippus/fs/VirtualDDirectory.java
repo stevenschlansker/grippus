@@ -42,8 +42,10 @@ public class VirtualDDirectory extends VirtualDFile {
 	public Errno mkdir(String name, Permission perm) {
 		if (getChildren().containsKey(name))
 			return Errno.ERROR_EXISTS;
-		if (!nameValid(name))
+		if (!nameValid(name)) {
+			LOG.error("Bad name " + name);
 			return Errno.ERROR_BAD_NAME;
+		}
 		getChildren().put(name, new VirtualDDirectory(name, this, perm));
 		LOG.info("mkdir " + name + " in " + this);
 		return Errno.SUCCESS;
