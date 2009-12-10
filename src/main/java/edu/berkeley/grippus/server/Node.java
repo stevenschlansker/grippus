@@ -202,10 +202,7 @@ public class Node {
 		NodeRPC newNode;
 		logger.debug("New peer "+newNodeURL);
 		try {
-			HessianProxyFactory factory = new HessianProxyFactory();
-			factory.setUser("grippus");
-			factory.setPassword(clusterPassword);
-			newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+			newNode = nodeRPCForURL(newNodeURL);
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception for new node URL");
 			return Errno.ERROR_ILLEGAL_ARGUMENT;
@@ -214,13 +211,20 @@ public class Node {
 		return Errno.SUCCESS;
 	}
 
+	private NodeRPC nodeRPCForURL(String newNodeURL)
+	throws MalformedURLException {
+		NodeRPC newNode;
+		HessianProxyFactory factory = new HessianProxyFactory();
+		factory.setUser("grippus");
+		factory.setPassword(clusterPassword);
+		newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+		return newNode;
+	}
+
 	public synchronized Errno getFileFromNode(Block block, int blockLength, String nodeURL) {
 		NodeRPC otherNode;
 		try {
-			HessianProxyFactory factory = new HessianProxyFactory();
-			factory.setUser("grippus");
-			factory.setPassword(clusterPassword);
-			otherNode = (NodeRPC) factory.create(NodeRPC.class,nodeURL);
+			otherNode = nodeRPCForURL(nodeURL);
 			byte[] fileData = otherNode.getFile(block, blockLength);
 			if (fileData != null) {
 				bs.createFile(block.getDigest(),fileData);
