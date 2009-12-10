@@ -109,19 +109,27 @@ public class LocalFilesystemStorage implements Storage {
 		this.saveChunk(digest,b);
 	}
 
+	public boolean isBlockLocal(Block from) {
+		File f = dirForDigest(from.getDigest());
+		return f.exists();
+	}
+	
+	public void downloadBlock(Block from) throws FileNotFoundException {
+		Random generator = new Random();
+	    int i = generator.nextInt(from.remoteNodes.size());
+		String nodeURL = from.remoteNodes.get(i);
+		Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
+		if (state != Errno.SUCCESS) {
+			throw new FileNotFoundException("I CAN HAZ FILES?");
+		}	
+	}
 	@Override
 	public InputStream readBlock(Block from) throws IOException {
 		try {
 			File f = dirForDigest(from.getDigest());
 			//For every node we want to create a new thread. 
 			if (!f.exists()) {
-			    Random generator = new Random();
-			    int i = generator.nextInt(from.remoteNodes.size());
-				String nodeURL = from.remoteNodes.get(i);
-				Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
-				if (state != Errno.SUCCESS) {
-					throw new FileNotFoundException("I CAN HAZ FILES?");
-				}
+				this.downloadBlock(from);
 			}
 			return new FileInputStream(new File(dirForDigest(from.getDigest()),
 					nameForDigest(from.getDigest())));

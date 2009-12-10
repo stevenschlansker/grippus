@@ -221,6 +221,7 @@ public class Node {
 			byte[] fileData = otherNode.getFile(block, blockLength);
 			if (fileData != null) {
 				bs.createFile(block.getDigest(),fileData);
+				block.addNode(myNodeURL);
 			} else {
 				return Errno.ERROR_FILE_NOT_FOUND;
 			}
