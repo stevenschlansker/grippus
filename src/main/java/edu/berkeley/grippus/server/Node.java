@@ -604,7 +604,6 @@ public class Node {
 		} catch (IllegalAccessException e) {
 			return "Internal error: " + e.toString();
 		}
-		return fm.execute(file, file.getParent().find(
-				file.getName() + ".mapped"));
+		return fm.execute(getVFS(), getStorage(), file, file.getParent());
 	}
 }
