@@ -93,7 +93,7 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	}
 
 	@Override
-	public Pair<Errno, String> sha1(String cmd, String algo, DFileSpec path) {
-		return managedNode.sha1(algo, path);
+	public Pair<Errno, String> digest(String cmd, String algo, DFileSpec path) {
+		return managedNode.digest(algo, path);
 	}
 }

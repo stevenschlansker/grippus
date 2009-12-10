@@ -488,7 +488,7 @@ public class Node {
 		return myNodeURL;
 	}
 
-	public Pair<Errno, String> sha1(String algo, DFileSpec path) {
+	public Pair<Errno, String> digest(String algo, DFileSpec path) {
 		DFile f = getVFS().resolve(path);
 		if (f == null)
 			return new Pair<Errno, String>(Errno.ERROR_FILE_NOT_FOUND, "");
