@@ -23,7 +23,7 @@ public class Client {
 
 	private DFileSpec cwd = DFileSpec.ROOT;
 
-	public static void main(String[] args) {
+	public static void main(String ... args) {
 		new Client().run(args);
 	}
 

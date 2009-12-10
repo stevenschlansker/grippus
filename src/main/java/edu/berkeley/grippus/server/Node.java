@@ -27,6 +27,7 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.client.Client;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.LocalVFS;
@@ -119,6 +120,8 @@ public class Node {
 
 		while(running) {
 			try {
+				logger.info("Launching local client...");
+				Client.main(conf.getString("node.port"));
 				Thread.sleep(1000);
 			} catch (InterruptedException e) { /* don't bother */ }
 		}
