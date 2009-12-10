@@ -7,6 +7,7 @@ import com.caucho.hessian.server.HessianServlet;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.storage.Block;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
@@ -56,7 +57,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	}
 
 	@Override
-	public String mapFile(DFile file, String className) {
-		return myNode.mapFile(file, className);
+	public String mapFile(DFile file, String className, DFileSpec dest) {
+		return myNode.mapFile(file, className, dest);
 	}
 }

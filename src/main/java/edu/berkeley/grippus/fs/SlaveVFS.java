@@ -51,7 +51,7 @@ public class SlaveVFS extends VFS {
 	}
 
 	@Override
-	protected synchronized void sync() {
+	public synchronized void sync() {
 		super.sync();
 		try {
 			root = master.downloadMetadata();

@@ -54,7 +54,6 @@ public class LocalFilesystemStorage implements Storage {
 				int limit = (int) Math.min(off + CHUNK_SIZE, length - mapoff - off);
 				buf.position(off);
 				buf.limit(limit);
-				buf.position(off);
 				result.append(blockFor(buf));
 			}
 		}
@@ -69,7 +68,9 @@ public class LocalFilesystemStorage implements Storage {
 		} catch (NoSuchAlgorithmException e) {
 			throw new IOException("Could not SHA-512 :(", e);
 		}
+		int off = buf.position();
 		md.update(buf);
+		buf.position(off);
 		byte[] digest = md.digest();
 		saveChunk(digest, buf);
 		return new Block(digest, buf.limit(), myNode.getMyNodeURL());

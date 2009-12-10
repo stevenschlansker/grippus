@@ -65,5 +65,7 @@ public abstract class VFS {
 	public Errno addEntry(DFile parent, DFile child) {
 		return parent.addEntry(child);
 	}
-	protected void sync() { /* master VFS is always in sync */ }
+
+	public void sync() { /* master VFS is always in sync */
+	}
 }
