@@ -133,7 +133,7 @@ public class Node {
 		while(running) {
 			try {
 				logger.info("Launching local client...");
-				Client.main(conf.getString("node.port"));
+				new Client().run(conf.getString("node.port"));
 				Thread.sleep(1000);
 			} catch (InterruptedException e) { /* don't bother */ }
 		}
