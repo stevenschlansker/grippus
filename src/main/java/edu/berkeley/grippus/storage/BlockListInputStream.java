@@ -2,8 +2,6 @@ package edu.berkeley.grippus.storage;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -13,9 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 
 public class BlockListInputStream extends InputStream {
 	private static final Logger LOG = Logger.getLogger(BlockListInputStream.class);
