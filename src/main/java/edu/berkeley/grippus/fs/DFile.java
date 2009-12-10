@@ -84,6 +84,7 @@ public abstract class DFile implements Serializable {
 	}
 
 	public InputStream open(Storage s) {
-		throw new UnsupportedOperationException("Can't read this file " + this);
+		throw new UnsupportedOperationException("Can't read this file "
+				+ getClass() + " " + this);
 	}
 }

@@ -575,7 +575,7 @@ public class Node {
 		} catch (MalformedURLException e) {
 			/* ignore, we'll just not use ourselves */
 		}
-		ExecutorService e = Executors.newCachedThreadPool();
+		ExecutorService e = Executors.newFixedThreadPool(50);
 		ExecutorCompletionService<String> jobs = new ExecutorCompletionService<String>(e);
 		for (final DFile file : list) {
 			final NodeRPC target = nodes.poll();

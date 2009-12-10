@@ -86,17 +86,18 @@ public class LocalFilesystemStorage implements Storage {
 			byte[] oldbuf = new byte[buf.remaining()];
 			buf.get(oldbuf);
 			if (Arrays.equals(StreamUtils
-					.getBytes(new FileInputStream(storage)), oldbuf))
-				LOG.info("Found duplicated block!  " + storage.getName());
-			else
+					.getBytes(new FileInputStream(storage)), oldbuf)) {
+				// LOG.info("Found duplicated block!  " + storage.getName());
+			} else {
 				LOG.error("OH FUCK HASH COLLISION " + storage.getAbsolutePath());
+			}
 		} else {
 			FileOutputStream fos = new FileOutputStream(storage);
-			int len = buf.remaining();
+			// int len = buf.remaining();
 			fos.getChannel().write(buf);
 			fos.close();
-			LOG.info("Wrote chunk of size " + len + " to "
-					+ storage.getAbsolutePath());
+			// LOG.info("Wrote chunk of size " + len + " to "
+			// + storage.getAbsolutePath());
 		}
 	}
 	public String nameForDigest(byte[] digest) {
