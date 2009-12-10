@@ -138,4 +138,10 @@ public class Client {
 		System.out.println(result.cdr());
 		return result.car();
 	}
+
+	public Errno map(String cmd, String className, String directory) {
+		Pair<Errno, String> result = node.map(cmd, className, cwd.append(directory));
+		System.out.println(result.cdr());
+		return result.car();
+	}
 }

@@ -6,6 +6,7 @@ import javax.servlet.ServletException;
 import com.caucho.hessian.server.HessianServlet;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.storage.Block;
 
 public class NodeRPCImpl extends HessianServlet implements NodeRPC {
@@ -30,7 +31,7 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 		myNode.removeNodeLocal(leaverURL);
 		return true;
 	}
-	
+
 	public synchronized byte[] getFile(Block block, int blockLength) {
 		return myNode.getFile(block, blockLength);
 	}
@@ -40,8 +41,8 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 		return myNode.getMasterURL();
 	}
 
-	/*** 
-	 * Connects to a master server and sets it to master server. 
+	/***
+	 * Connects to a master server and sets it to master server.
 	 * Sends the message to master server to broadcast its existence.
 	 * @param masterServerURL
 	 */
@@ -52,5 +53,11 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 	@Override
 	public String getNodeRef() {
 		return myNode.getNodeRef();
+	}
+
+	@Override
+	public String mapFile(DFile file, String className) {
+		// TODO Auto-generated method stub
+		throw new AssertionError("Not implemented");
 	}
 }

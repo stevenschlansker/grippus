@@ -8,11 +8,20 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import jline.ConsoleReader;
 
@@ -25,6 +34,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.client.Client;
@@ -520,5 +531,57 @@ public class Node {
 
 	public boolean isRunning() {
 		return running;
+	}
+
+	private class NotHidden implements Predicate<DFile> {
+		@Override
+		public boolean apply(DFile arg) {
+			return !arg.getName().startsWith(".");
+		}
+	}
+
+	private void traverse(DFile f, Collection<DFile> list) {
+		if (f.isDirectory())
+			for (DFile child : Collections2.filter(f.getChildren().values(),
+					new NotHidden()))
+				traverse(child, list);
+		else
+			list.add(f);
+	}
+
+	public Pair<Errno, String> map(final String className, DFileSpec toWhat) {
+		DFile f = getVFS().resolve(toWhat);
+		List<DFile> list = new ArrayList<DFile>();
+		StringBuilder result = new StringBuilder();
+		traverse(f, list);
+		Queue<NodeRPC> nodes = new LinkedList<NodeRPC>();
+		nodes.addAll(getClusterMembers().values());
+		try {
+			nodes.add(nodeRPCForURL(myNodeURL));
+		} catch (MalformedURLException e) {
+			/* ignore, we'll just not use ourselves */
+		}
+		ExecutorService e = Executors.newCachedThreadPool();
+		ExecutorCompletionService<String> jobs = new ExecutorCompletionService<String>(e);
+		for (final DFile file : list) {
+			final NodeRPC target = nodes.poll();
+			jobs.submit(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					return target.mapFile(file, className);
+				}
+			});
+			nodes.offer(target);
+		}
+
+		e.shutdown();
+		while (!e.isTerminated()) {
+			try {
+				result.append(jobs.take() + "\n");
+			} catch (InterruptedException ie) {
+				logger.warn("Someone interrupted me!", ie);
+			}
+		}
+		return new Pair<Errno, String>(Errno.SUCCESS, result.toString());
 	}
 }

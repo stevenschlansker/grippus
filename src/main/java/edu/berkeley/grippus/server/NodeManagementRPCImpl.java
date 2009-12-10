@@ -96,4 +96,10 @@ public class NodeManagementRPCImpl extends HessianServlet implements NodeManagem
 	public Pair<Errno, String> digest(String cmd, String algo, DFileSpec path) {
 		return managedNode.digest(algo, path);
 	}
+
+	@Override
+	public Pair<Errno, String> map(String cmd, String className,
+			DFileSpec toWhat) {
+		return managedNode.map(className, toWhat);
+	}
 }
