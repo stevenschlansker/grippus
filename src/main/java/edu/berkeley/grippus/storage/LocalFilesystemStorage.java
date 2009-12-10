@@ -117,10 +117,10 @@ public class LocalFilesystemStorage implements Storage {
 	public InputStream readBlock(Block from) throws IOException {
 		try {
 			File f = dirForDigest(from.getDigest());
-			//For every node we want to create a new thread. 
+			//For every node we want to create a new thread.
 			if (!f.exists()) {
-			    Random generator = new Random();
-			    int i = generator.nextInt(from.remoteNodes.size());
+				Random generator = new Random();
+				int i = generator.nextInt(from.remoteNodes.size());
 				String nodeURL = from.remoteNodes.get(i);
 				Errno state = myNode.getFileFromNode(from,from.length,nodeURL);
 				if (state != Errno.SUCCESS) {
@@ -135,5 +135,4 @@ public class LocalFilesystemStorage implements Storage {
 			throw new IOException("Corrupted file", e);
 		}
 	}
-	
 }
