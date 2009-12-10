@@ -6,6 +6,7 @@ public abstract class Periodic implements Runnable {
 	private static final Logger LOG = Logger.getLogger(Periodic.class);
 	private final Thread runner = new Thread(this);
 	private final long sleep;
+	private boolean running = true;
 	public Periodic(long sleep, String name) {
 		this.sleep = sleep;
 		runner.setName(name);
@@ -14,7 +15,7 @@ public abstract class Periodic implements Runnable {
 	protected abstract void fire();
 	@Override
 	public void run() {
-		while(true) {
+		while(running) {
 			try {
 				Thread.sleep(sleep);
 			} catch (InterruptedException e) {
@@ -25,5 +26,9 @@ public abstract class Periodic implements Runnable {
 			}
 			fire();
 		}
+	}
+	
+	protected void die() {
+		running = false;
 	}
 }

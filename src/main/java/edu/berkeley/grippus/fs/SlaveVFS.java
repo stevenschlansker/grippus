@@ -8,6 +8,7 @@ import com.caucho.hessian.client.HessianRuntimeException;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.EveryonePermissions;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.server.Node;
 import edu.berkeley.grippus.server.NodeMasterRPC;
 import edu.berkeley.grippus.util.Periodic;
 
@@ -16,13 +17,18 @@ public class SlaveVFS extends VFS {
 	private static final Logger LOG = Logger.getLogger(SlaveVFS.class);
 	private volatile DFile root = new VirtualDDirectory("%TEMPROOT%",
 			new EveryonePermissions());
+	private final Node myNode;
 	@SuppressWarnings("unused")
 	private final Periodic updater = new Periodic(500, "VFS update thread") {
 		@Override protected void fire() {
-			sync();
+			if (myNode.isRunning())
+				sync();
+			else
+				die();
 		}
 	};
-	public SlaveVFS(NodeMasterRPC master) {
+	public SlaveVFS(Node myNode, NodeMasterRPC master) {
+		this.myNode = myNode;
 		this.master = master;
 	}
 	@Override

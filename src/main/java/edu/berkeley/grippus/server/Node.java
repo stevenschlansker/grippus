@@ -426,7 +426,7 @@ public class Node {
 				setClusterID(clusterID);
 				master.joinCluster(getMyNodeURL());
 				state = NodeState.SLAVE;
-				vfs = new SlaveVFS(master);
+				vfs = new SlaveVFS(this, master);
 			} catch (MalformedURLException e) {
 				logger.error("Malformed URL exception with master server url");
 			}
@@ -512,5 +512,9 @@ public class Node {
 		} catch (IOException e) {
 			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
 		}
+	}
+
+	public boolean isRunning() {
+		return running;
 	}
 }
