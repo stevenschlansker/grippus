@@ -57,7 +57,6 @@ public class NodeRPCImpl extends HessianServlet implements NodeRPC {
 
 	@Override
 	public String mapFile(DFile file, String className) {
-		// TODO Auto-generated method stub
-		throw new AssertionError("Not implemented");
+		return myNode.mapFile(file, className);
 	}
 }

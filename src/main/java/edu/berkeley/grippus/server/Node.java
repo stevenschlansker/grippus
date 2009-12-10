@@ -46,6 +46,7 @@ import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.fs.perm.DPermission;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.map.FileMapper;
 import edu.berkeley.grippus.storage.Block;
 import edu.berkeley.grippus.storage.LocalFilesystemStorage;
 import edu.berkeley.grippus.storage.Storage;
@@ -583,5 +584,27 @@ public class Node {
 			}
 		}
 		return new Pair<Errno, String>(Errno.SUCCESS, result.toString());
+	}
+
+	public String mapFile(DFile file, String partialClassName) {
+		String className = "edu.berkeley.grippus.map." + partialClassName;
+		Class<?> mapClass;
+		try {
+			mapClass = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			return "No such class: " + className;
+		}
+		if (!FileMapper.class.isAssignableFrom(mapClass))
+			return "Not a mapper class: " + className;
+		FileMapper fm;
+		try {
+			fm = FileMapper.class.cast(mapClass.newInstance());
+		} catch (InstantiationException e) {
+			return "Internal error: " + e.toString();
+		} catch (IllegalAccessException e) {
+			return "Internal error: " + e.toString();
+		}
+		return fm.execute(file, file.getParent().find(
+				file.getName() + ".mapped"));
 	}
 }
