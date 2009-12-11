@@ -8,11 +8,20 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import jline.ConsoleReader;
 
@@ -25,8 +34,11 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 import edu.berkeley.grippus.Errno;
+import edu.berkeley.grippus.client.Client;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.LocalVFS;
@@ -34,6 +46,7 @@ import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.fs.perm.DPermission;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.map.FileMapper;
 import edu.berkeley.grippus.storage.Block;
 import edu.berkeley.grippus.storage.LocalFilesystemStorage;
 import edu.berkeley.grippus.storage.Storage;
@@ -119,6 +132,8 @@ public class Node {
 
 		while(running) {
 			try {
+				logger.info("Launching local client...");
+				new Client().run(conf.getString("node.port"));
 				Thread.sleep(1000);
 			} catch (InterruptedException e) { /* don't bother */ }
 		}
@@ -199,10 +214,7 @@ public class Node {
 		NodeRPC newNode;
 		logger.debug("New peer "+newNodeURL);
 		try {
-			HessianProxyFactory factory = new HessianProxyFactory();
-			factory.setUser("grippus");
-			factory.setPassword(clusterPassword);
-			newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+			newNode = nodeRPCForURL(newNodeURL);
 		} catch (MalformedURLException e) {
 			logger.error("Malformed URL exception for new node URL");
 			return Errno.ERROR_ILLEGAL_ARGUMENT;
@@ -211,13 +223,20 @@ public class Node {
 		return Errno.SUCCESS;
 	}
 
+	private NodeRPC nodeRPCForURL(String newNodeURL)
+	throws MalformedURLException {
+		NodeRPC newNode;
+		HessianProxyFactory factory = new HessianProxyFactory();
+		factory.setUser("grippus");
+		factory.setPassword(clusterPassword);
+		newNode = (NodeRPC) factory.create(NodeRPC.class,newNodeURL);
+		return newNode;
+	}
+
 	public synchronized Errno getFileFromNode(Block block, int blockLength, String nodeURL) {
 		NodeRPC otherNode;
 		try {
-			HessianProxyFactory factory = new HessianProxyFactory();
-			factory.setUser("grippus");
-			factory.setPassword(clusterPassword);
-			otherNode = (NodeRPC) factory.create(NodeRPC.class,nodeURL);
+			otherNode = nodeRPCForURL(nodeURL);
 			byte[] fileData = otherNode.getFile(block, blockLength);
 			if (fileData != null) {
 				bs.createFile(block.getDigest(),fileData);
@@ -424,7 +443,7 @@ public class Node {
 				setClusterID(clusterID);
 				master.joinCluster(getMyNodeURL());
 				state = NodeState.SLAVE;
-				vfs = new SlaveVFS(master);
+				vfs = new SlaveVFS(this, master);
 			} catch (MalformedURLException e) {
 				logger.error("Malformed URL exception with master server url");
 			}
@@ -486,7 +505,7 @@ public class Node {
 		return myNodeURL;
 	}
 
-	public Pair<Errno, String> sha1(String algo, DFileSpec path) {
+	public Pair<Errno, String> digest(String algo, DFileSpec path) {
 		DFile f = getVFS().resolve(path);
 		if (f == null)
 			return new Pair<Errno, String>(Errno.ERROR_FILE_NOT_FOUND, "");
@@ -510,5 +529,82 @@ public class Node {
 		} catch (IOException e) {
 			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
 		}
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	private class NotHidden implements Predicate<DFile> {
+		@Override
+		public boolean apply(DFile arg) {
+			return !arg.getName().startsWith(".");
+		}
+	}
+
+	private void traverse(DFile f, Collection<DFile> list) {
+		if (f.isDirectory())
+			for (DFile child : Collections2.filter(f.getChildren().values(),
+					new NotHidden()))
+				traverse(child, list);
+		else
+			list.add(f);
+	}
+
+	public Pair<Errno, String> map(final String className, DFileSpec toWhat) {
+		DFile f = getVFS().resolve(toWhat);
+		List<DFile> list = new ArrayList<DFile>();
+		StringBuilder result = new StringBuilder();
+		traverse(f, list);
+		Queue<NodeRPC> nodes = new LinkedList<NodeRPC>();
+		nodes.addAll(getClusterMembers().values());
+		try {
+			nodes.add(nodeRPCForURL(myNodeURL));
+		} catch (MalformedURLException e) {
+			/* ignore, we'll just not use ourselves */
+		}
+		ExecutorService e = Executors.newCachedThreadPool();
+		ExecutorCompletionService<String> jobs = new ExecutorCompletionService<String>(e);
+		for (final DFile file : list) {
+			final NodeRPC target = nodes.poll();
+			jobs.submit(new Callable<String>() {
+				@Override
+				public String call() throws Exception {
+					return target.mapFile(file, className);
+				}
+			});
+			nodes.offer(target);
+		}
+
+		e.shutdown();
+		while (!e.isTerminated()) {
+			try {
+				result.append(jobs.take() + "\n");
+			} catch (InterruptedException ie) {
+				logger.warn("Someone interrupted me!", ie);
+			}
+		}
+		return new Pair<Errno, String>(Errno.SUCCESS, result.toString());
+	}
+
+	public String mapFile(DFile file, String partialClassName) {
+		String className = "edu.berkeley.grippus.map." + partialClassName;
+		Class<?> mapClass;
+		try {
+			mapClass = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			return "No such class: " + className;
+		}
+		if (!FileMapper.class.isAssignableFrom(mapClass))
+			return "Not a mapper class: " + className;
+		FileMapper fm;
+		try {
+			fm = FileMapper.class.cast(mapClass.newInstance());
+		} catch (InstantiationException e) {
+			return "Internal error: " + e.toString();
+		} catch (IllegalAccessException e) {
+			return "Internal error: " + e.toString();
+		}
+		return fm.execute(getVFS(), getStorage(), file, file.getParent());
 	}
 }

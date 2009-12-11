@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -47,12 +46,6 @@ public class LocalFilesystemStorage implements Storage {
 	@Override public BlockList chunkify(File src) throws IOException {
 		FileInputStream fis = new FileInputStream(src);
 		long length = src.length();
-		MessageDigest md;
-		try {
-			md = MessageDigest.getInstance("SHA-512");
-		} catch (NoSuchAlgorithmException e) {
-			throw new IOException("Could not SHA-512 :(", e);
-		}
 		BlockList result = new BlockList();
 		for (long mapoff = 0; mapoff <= length; mapoff += MMAP_SIZE) {
 			ByteBuffer buf = fis.getChannel().map(MapMode.READ_ONLY, 0, length);
@@ -61,14 +54,26 @@ public class LocalFilesystemStorage implements Storage {
 				int limit = (int) Math.min(off + CHUNK_SIZE, length - mapoff - off);
 				buf.position(off);
 				buf.limit(limit);
-				md.update(buf);
-				byte[] digest = md.digest();
-				buf.position(off);
-				saveChunk(digest, buf);
-				result.append(new Block(digest, limit, myNode.getMyNodeURL()));
+				result.append(blockFor(buf));
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public Block blockFor(ByteBuffer buf) throws IOException {
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA-512");
+		} catch (NoSuchAlgorithmException e) {
+			throw new IOException("Could not SHA-512 :(", e);
+		}
+		int off = buf.position();
+		md.update(buf);
+		buf.position(off);
+		byte[] digest = md.digest();
+		saveChunk(digest, buf);
+		return new Block(digest, buf.limit(), myNode.getMyNodeURL());
 	}
 
 	private void saveChunk(byte[] digest, ByteBuffer buf) throws IOException {
@@ -81,17 +86,18 @@ public class LocalFilesystemStorage implements Storage {
 			byte[] oldbuf = new byte[buf.remaining()];
 			buf.get(oldbuf);
 			if (Arrays.equals(StreamUtils
-					.getBytes(new FileInputStream(storage)), oldbuf))
-				LOG.info("Found duplicated block!  " + storage.getName());
-			else
+					.getBytes(new FileInputStream(storage)), oldbuf)) {
+				// LOG.info("Found duplicated block!  " + storage.getName());
+			} else {
 				LOG.error("OH FUCK HASH COLLISION " + storage.getAbsolutePath());
+			}
 		} else {
 			FileOutputStream fos = new FileOutputStream(storage);
-			int len = buf.remaining();
+			// int len = buf.remaining();
 			fos.getChannel().write(buf);
 			fos.close();
-			LOG.info("Wrote chunk of size " + len + " to "
-					+ storage.getAbsolutePath());
+			// LOG.info("Wrote chunk of size " + len + " to "
+			// + storage.getAbsolutePath());
 		}
 	}
 	public String nameForDigest(byte[] digest) {
@@ -101,7 +107,7 @@ public class LocalFilesystemStorage implements Storage {
 	public File dirForDigest(byte[] digest) {
 		return new File(new File(new File(root, String.format("%02x%02x",
 				digest[0], digest[1])), String.format("%02x%02x", digest[2],
-				digest[3])), String.format("%02x%02x", digest[4], digest[5]));
+						digest[3])), String.format("%02x%02x", digest[4], digest[5]));
 	}
 
 	public void createFile(byte[] digest, byte[] fileData) throws IOException {
@@ -123,11 +129,12 @@ public class LocalFilesystemStorage implements Storage {
 			throw new FileNotFoundException("I CAN HAZ FILES?");
 		}	
 	}
+
 	@Override
 	public InputStream readBlock(Block from) throws IOException {
 		try {
 			File f = dirForDigest(from.getDigest());
-			//For every node we want to create a new thread. 
+			//For every node we want to create a new thread.
 			if (!f.exists()) {
 				this.downloadBlock(from);
 			}
@@ -139,5 +146,4 @@ public class LocalFilesystemStorage implements Storage {
 			throw new IOException("Corrupted file", e);
 		}
 	}
-	
 }

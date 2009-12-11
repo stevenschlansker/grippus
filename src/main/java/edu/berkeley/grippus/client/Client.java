@@ -23,12 +23,12 @@ public class Client {
 
 	private DFileSpec cwd = DFileSpec.ROOT;
 
-	public static void main(String[] args) {
+	public static void main(String ... args) {
+		BasicConfigurator.configure();
 		new Client().run(args);
 	}
 
-	private void run(String[] args) {
-		BasicConfigurator.configure();
+	public void run(String... args) {
 
 		try {
 			ConsoleReader console = new ConsoleReader();
@@ -134,7 +134,13 @@ public class Client {
 	}
 
 	public Errno digest(String cmd, String algo, String path) {
-		Pair<Errno, String> result = node.sha1(cmd, algo, cwd.append(path));
+		Pair<Errno, String> result = node.digest(cmd, algo, cwd.append(path));
+		System.out.println(result.cdr());
+		return result.car();
+	}
+
+	public Errno map(String cmd, String className, String directory) {
+		Pair<Errno, String> result = node.map(cmd, className, cwd.append(directory));
 		System.out.println(result.cdr());
 		return result.car();
 	}

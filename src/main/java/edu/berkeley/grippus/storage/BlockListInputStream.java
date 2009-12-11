@@ -2,8 +2,6 @@ package edu.berkeley.grippus.storage;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -14,11 +12,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-
 public class BlockListInputStream extends InputStream {
-	private static final Logger LOG = Logger.getLogger(BlockListInputStream.class);
+	private static final Logger LOG = Logger
+			.getLogger(BlockListInputStream.class);
+
 	public class CorruptedBlockInputStream extends InputStream {
 		private int len;
 
@@ -38,6 +35,12 @@ public class BlockListInputStream extends InputStream {
 	private InputStream current;
 
 	public BlockListInputStream(final Storage s, BlockList data) {
+//		ArrayList<String> validNodes = (ArrayList) Collections.synchronizedCollection(data.getBlocks().get(0).remoteNodes);
+//		int numBlocks = data.getBlocks().size();
+//		ArrayList<Block> droppedBlocks = new ArrayList<Block>();
+//		droppedBlocks = (ArrayList) Collections.synchronizedList(droppedBlocks);
+//		int numValidNodes = validNodes.size();
+//		ArrayList<InputStream> blockStreams = (ArrayList) Collections.synchronizedCollection(new ArrayList<InputStream>());
 		// Make a thread pool
 		// Have a job-queue, take a thread and utilize it.
 		// if it fails, throw an exception and log an error. 
@@ -62,17 +65,13 @@ public class BlockListInputStream extends InputStream {
 						Block b = this.queue.poll();
 						try {
 							s.downloadBlock(b);
-							s.propogateBlockDownload(b);
-							Thread.sleep(5000);
 						} catch (IOException e) {
 							this.queue.offer(b);
-						} catch (InterruptedException e) {
-							LOG.error("Interrupted exception");
 						}
 					} 
 				}
 			}
-			
+		
 			ExecutorService threadExecutor = Executors.newFixedThreadPool(5);
 			
 			for (int i = 0; i < validBlocks.size(); i++) {
@@ -101,7 +100,6 @@ public class BlockListInputStream extends InputStream {
 		
 		current = streams.poll();
 	}
-	
 
 	@Override
 	public int read() throws IOException {
