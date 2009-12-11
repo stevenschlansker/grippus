@@ -1,13 +1,13 @@
 package edu.berkeley.grippus.fs;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.berkeley.grippus.fs.perm.Permission;
 
 public abstract class VirtualDFile extends DFile {
 	private static final long serialVersionUID = 1L;
-	private final Map<String, DFile> children = new HashMap<String, DFile>();
+	private final Map<String, DFile> children = new ConcurrentHashMap<String, DFile>();
 	public VirtualDFile(String name, Permission perm) {
 		super(name, perm);
 	}

@@ -24,7 +24,7 @@ public abstract class FileMapper {
 			while (off < CHUNK_SIZE) {
 				int nBytes;
 				try {
-					nBytes = ins.read(buf.array(), off, CHUNK_SIZE);
+					nBytes = ins.read(buf.array(), off, CHUNK_SIZE - off);
 				} catch (IOException e) {
 					return "Failed: " + e.toString();
 				}

@@ -47,7 +47,7 @@ public class VirtualDDirectory extends VirtualDFile {
 			return Errno.ERROR_BAD_NAME;
 		}
 		getChildren().put(name, new VirtualDDirectory(name, this, perm));
-		LOG.info("mkdir " + name + " in " + this);
+		// LOG.info("mkdir " + name + " in " + this);
 		return Errno.SUCCESS;
 	}
 

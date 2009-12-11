@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +46,7 @@ import edu.berkeley.grippus.fs.LocalVFS;
 import edu.berkeley.grippus.fs.SlaveVFS;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.fs.perm.DPermission;
+import edu.berkeley.grippus.fs.perm.EveryonePermissions;
 import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.map.FileMapper;
 import edu.berkeley.grippus.storage.Block;
@@ -525,6 +527,7 @@ public class Node {
 			return new Pair<Errno, String>(Errno.SUCCESS, Hex
 					.encodeHexString(md.digest()));
 		} catch (UnsupportedOperationException e) {
+			logger.error("Unsupported", e);
 			return new Pair<Errno, String>(Errno.ERROR_NOT_SUPPORTED, "");
 		} catch (IOException e) {
 			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
@@ -536,16 +539,22 @@ public class Node {
 	}
 
 	private class NotHidden implements Predicate<DFile> {
+		private final DFile f;
+
+		public NotHidden(DFile f) {
+			this.f = f;
+		}
 		@Override
 		public boolean apply(DFile arg) {
-			return !arg.getName().startsWith(".");
+			return !arg.getName().startsWith(".") && arg != f
+			&& arg != f.getParent();
 		}
 	}
 
 	private void traverse(DFile f, Collection<DFile> list) {
 		if (f.isDirectory())
 			for (DFile child : Collections2.filter(f.getChildren().values(),
-					new NotHidden()))
+					new NotHidden(f)))
 				traverse(child, list);
 		else
 			list.add(f);
@@ -553,6 +562,10 @@ public class Node {
 
 	public Pair<Errno, String> map(final String className, DFileSpec toWhat) {
 		DFile f = getVFS().resolve(toWhat);
+		final DFileSpec outSpec = new DFileSpec("/mapout");
+		final DFile dest = getVFS().resolve(outSpec);
+		if (!dest.exists())
+			dest.mkdir(new EveryonePermissions());
 		List<DFile> list = new ArrayList<DFile>();
 		StringBuilder result = new StringBuilder();
 		traverse(f, list);
@@ -563,14 +576,14 @@ public class Node {
 		} catch (MalformedURLException e) {
 			/* ignore, we'll just not use ourselves */
 		}
-		ExecutorService e = Executors.newCachedThreadPool();
+		ExecutorService e = Executors.newFixedThreadPool(50);
 		ExecutorCompletionService<String> jobs = new ExecutorCompletionService<String>(e);
 		for (final DFile file : list) {
 			final NodeRPC target = nodes.poll();
 			jobs.submit(new Callable<String>() {
 				@Override
 				public String call() throws Exception {
-					return target.mapFile(file, className);
+					return target.mapFile(file, className, outSpec);
 				}
 			});
 			nodes.offer(target);
@@ -579,15 +592,18 @@ public class Node {
 		e.shutdown();
 		while (!e.isTerminated()) {
 			try {
-				result.append(jobs.take() + "\n");
+				result.append(jobs.take().get() + "\n");
 			} catch (InterruptedException ie) {
 				logger.warn("Someone interrupted me!", ie);
+			} catch (ExecutionException ee) {
+				result.append("Execution exception: " + ee.toString() + "\n");
+				logger.error("Execution exception", ee);
 			}
 		}
 		return new Pair<Errno, String>(Errno.SUCCESS, result.toString());
 	}
 
-	public String mapFile(DFile file, String partialClassName) {
+	public String mapFile(DFile file, String partialClassName, DFileSpec dest) {
 		String className = "edu.berkeley.grippus.map." + partialClassName;
 		Class<?> mapClass;
 		try {
@@ -605,6 +621,7 @@ public class Node {
 		} catch (IllegalAccessException e) {
 			return "Internal error: " + e.toString();
 		}
-		return fm.execute(getVFS(), getStorage(), file, file.getParent());
+		getVFS().sync();
+		return fm.execute(getVFS(), getStorage(), file, getVFS().resolve(dest));
 	}
 }

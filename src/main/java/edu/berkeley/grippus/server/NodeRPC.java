@@ -2,6 +2,7 @@ package edu.berkeley.grippus.server;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.storage.Block;
 
 public interface NodeRPC {
@@ -21,5 +22,5 @@ public interface NodeRPC {
 
 	String getNodeRef();
 
-	String mapFile(DFile file, String className);
+	String mapFile(DFile file, String className, DFileSpec destDir);
 }
