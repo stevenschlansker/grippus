@@ -32,7 +32,7 @@ public class SlaveVFS extends VFS {
 		this.master = master;
 	}
 	@Override
-	public synchronized Errno mkdir(DFileSpec dir, Permission perm) {
+	public Errno mkdir(DFileSpec dir, Permission perm) {
 		return master.mkdir(dir, perm);
 	}
 	@Override
@@ -41,12 +41,12 @@ public class SlaveVFS extends VFS {
 		return Errno.ERROR_NOT_SUPPORTED; // TODO implement
 	}
 	@Override
-	protected synchronized DFile getRoot() {
+	protected DFile getRoot() {
 		return root;
 	}
 
 	@Override
-	public synchronized Errno addEntry(DFileSpec parent, DFile child) {
+	public Errno addEntry(DFileSpec parent, DFile child) {
 		return master.addEntry(parent, child);
 	}
 
