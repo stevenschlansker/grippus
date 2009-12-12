@@ -210,6 +210,7 @@ public class Node {
 	public synchronized void terminate() {
 		disconnect();
 		running = false;
+		getVFS().terminate();
 	}
 
 	public synchronized Errno addPeer(String newNodeURL) {

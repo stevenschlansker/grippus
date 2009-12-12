@@ -41,7 +41,7 @@ public abstract class VFS {
 	}
 
 	private final ExecutorService copyExecutor = Executors
-			.newCachedThreadPool();
+	.newCachedThreadPool();
 
 	public Errno copyRecursive(String src, final DFileSpec dest, final Storage storage) {
 		File srcRoot = new File(src);
@@ -108,5 +108,8 @@ public abstract class VFS {
 		}
 
 
+	}
+	public void terminate() {
+		copyExecutor.shutdown();
 	}
 }
