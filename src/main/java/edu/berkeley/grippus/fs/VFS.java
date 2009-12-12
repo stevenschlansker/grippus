@@ -75,7 +75,7 @@ public abstract class VFS {
 			//How the fuck do I replace this block with a new block?!
 			d.replaceBlock(from);
 		}
-		
-		
+
+
 	}
 }
