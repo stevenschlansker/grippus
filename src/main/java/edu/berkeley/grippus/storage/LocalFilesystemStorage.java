@@ -120,6 +120,10 @@ public class LocalFilesystemStorage implements Storage {
 		return f.exists();
 	}
 	
+	public void propogateDownload(Block from, String path) {
+		myNode.propogateData(from, path);
+	}
+	
 	public void downloadBlock(Block from) throws FileNotFoundException {
 		Random generator = new Random();
 	    int i = generator.nextInt(from.remoteNodes.size());

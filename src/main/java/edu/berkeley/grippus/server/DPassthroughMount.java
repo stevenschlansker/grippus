@@ -9,6 +9,7 @@ import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.DMount;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 
 public class DPassthroughMount extends DMount {
 	private static final long serialVersionUID = 1L;
@@ -98,5 +99,16 @@ public class DPassthroughMount extends DMount {
 		public DFile getParent() {
 			return parent;
 		}
+		@Override
+		public void replaceBlock(Block b) {
+			throw new UnsupportedOperationException("Can't replace blocks");
+			
+		}
+	}
+
+	@Override
+	public void replaceBlock(Block b) {
+		throw new UnsupportedOperationException("Can't replace blocks");
+		
 	}
 }

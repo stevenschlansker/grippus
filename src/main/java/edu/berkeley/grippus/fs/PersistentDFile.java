@@ -5,13 +5,14 @@ import java.util.Map;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 import edu.berkeley.grippus.storage.BlockList;
 import edu.berkeley.grippus.storage.BlockListInputStream;
 import edu.berkeley.grippus.storage.Storage;
 
 public class PersistentDFile extends DFile {
 	private static final long serialVersionUID = 1L;
-	private final BlockList data;
+	private BlockList data;
 	public PersistentDFile(BlockList data, String name, Permission perm) {
 		super(name, perm);
 		this.data = data;
@@ -48,8 +49,14 @@ public class PersistentDFile extends DFile {
 		throw new UnsupportedOperationException("Can't get the parent of a file");
 	}
 
+	
 	@Override
-	public InputStream open(Storage s) {
-		return new BlockListInputStream(s, data);
+	public InputStream open(Storage s, DFileSpec path) {
+		return new BlockListInputStream(s, data, path);
+	}
+
+	@Override
+	public void replaceBlock(Block b) {
+		data.replaceBlock(b);		
 	}
 }

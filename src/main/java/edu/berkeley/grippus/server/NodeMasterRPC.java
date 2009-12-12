@@ -6,6 +6,7 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 
 public interface NodeMasterRPC {
 	/** joinCluster sends a join request which will add this NodeRPC to the 
@@ -26,4 +27,5 @@ public interface NodeMasterRPC {
 	public DFile downloadMetadata();
 	public Errno mkdir(DFileSpec dir, Permission perm);
 	public Errno addEntry(DFile parent, DFile child);
+	public void updateMetadata(Block from, String path);
 }

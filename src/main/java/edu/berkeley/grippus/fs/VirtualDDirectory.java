@@ -9,6 +9,7 @@ import com.google.common.collect.Collections2;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 
 public class VirtualDDirectory extends VirtualDFile {
 	private static final Logger LOG = Logger.getLogger(VirtualDDirectory.class);
@@ -80,4 +81,10 @@ public class VirtualDDirectory extends VirtualDFile {
 	public DFile getParent() {
 		return parent;
 	}
+
+	@Override
+	public void replaceBlock(Block b) {
+		throw new UnsupportedOperationException("Can't replace blocks of diretory");
+	}
+	
 }

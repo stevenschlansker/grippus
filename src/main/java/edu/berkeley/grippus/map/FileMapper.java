@@ -16,7 +16,7 @@ public abstract class FileMapper {
 	public final String execute(VFS vfs, Storage store, DFile in,
 			DFile outDir) {
 		ByteBuffer buf = ByteBuffer.allocate(CHUNK_SIZE);
-		InputStream ins = in.open(store);
+		InputStream ins = in.open(store, null); //TODO: This is so dangerous....
 		BlockList bl = new BlockList();
 		int off = 0;
 		do {

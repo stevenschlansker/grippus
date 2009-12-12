@@ -8,6 +8,7 @@ import java.util.Map;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.EveryonePermissions;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 import edu.berkeley.grippus.storage.Storage;
 
 public abstract class VFS {
@@ -67,5 +68,14 @@ public abstract class VFS {
 	}
 
 	public void sync() { /* master VFS is always in sync */
+	}
+	public void updateMetadata(Block from, String path) {
+		DFile d = this.resolve(new DFileSpec(path));
+		if (!d.isDirectory()) {
+			//How the fuck do I replace this block with a new block?!
+			d.replaceBlock(from);
+		}
+		
+		
 	}
 }

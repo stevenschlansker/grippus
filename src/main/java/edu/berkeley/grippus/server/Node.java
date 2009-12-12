@@ -491,7 +491,7 @@ public class Node {
 			return new Pair<Errno, String>(Errno.ERROR_FILE_NOT_FOUND, "");
 		try {
 			return new Pair<Errno, String>(Errno.SUCCESS, new String(
-					StreamUtils.getBytes(f.open(getStorage()))));
+					StreamUtils.getBytes(f.open(getStorage(), path))));
 		} catch (UnsupportedOperationException e) {
 			return new Pair<Errno, String>(Errno.ERROR_NOT_SUPPORTED, "");
 		} catch (IOException e) {
@@ -519,7 +519,7 @@ public class Node {
 				return new Pair<Errno, String>(Errno.ERROR_ILLEGAL_ARGUMENT,
 						"Bad digest algorithm " + algo);
 			}
-			InputStream is = f.open(getStorage());
+			InputStream is = f.open(getStorage(), path);
 			byte[] buf = new byte[8192];
 			int len;
 			while ((len = is.read(buf)) > -1)
@@ -623,5 +623,16 @@ public class Node {
 		}
 		getVFS().sync();
 		return fm.execute(getVFS(), getStorage(), file, getVFS().resolve(dest));
+	}
+	
+	public Errno propogateData(Block b, String path) {
+		try {
+			if (!this.isMaster()) {
+				masterServer.updateMetadata(b, path);
+			}
+		} catch (HessianRuntimeException e) {
+			logger.error("Something went wrong with updating metadata");
+		}
+		return Errno.SUCCESS_TOPOLOGY_CHANGE;
 	}
 }

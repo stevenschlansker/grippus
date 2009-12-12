@@ -2,6 +2,7 @@ package edu.berkeley.grippus.fs;
 
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 
 public class DirectoryPlaceholderDFile extends VirtualDFile {
 	private static final long serialVersionUID = 1L;
@@ -47,5 +48,10 @@ public class DirectoryPlaceholderDFile extends VirtualDFile {
 	@Override
 	public boolean exists() {
 		return false;
+	}
+
+	@Override
+	public void replaceBlock(Block b) {
+		throw new UnsupportedOperationException("Can't replace blocks of directory");
 	}
 }

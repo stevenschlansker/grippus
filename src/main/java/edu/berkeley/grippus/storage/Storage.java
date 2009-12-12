@@ -18,5 +18,7 @@ public interface Storage {
 	
 	public void downloadBlock(Block from) throws FileNotFoundException;
 
+	public void propogateDownload(Block from, String path);
+	
 	Block blockFor(ByteBuffer buf) throws IOException;
 }

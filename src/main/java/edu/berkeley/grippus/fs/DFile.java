@@ -9,6 +9,7 @@ import java.util.Map;
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.fs.perm.UndefinedPermissions;
+import edu.berkeley.grippus.storage.Block;
 import edu.berkeley.grippus.storage.Storage;
 
 public abstract class DFile implements Serializable {
@@ -83,7 +84,9 @@ public abstract class DFile implements Serializable {
 		return true;
 	}
 
-	public InputStream open(Storage s) {
+	public abstract void replaceBlock(Block b);
+	
+	public InputStream open(Storage s, DFileSpec path) {
 		throw new UnsupportedOperationException("Can't read this file "
 				+ getClass() + " " + this);
 	}

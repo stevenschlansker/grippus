@@ -13,6 +13,7 @@ import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.DFile;
 import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.perm.Permission;
+import edu.berkeley.grippus.storage.Block;
 
 public class NodeMasterRPCImpl extends HessianServlet implements NodeMasterRPC {
 	private static final long serialVersionUID = 1L;
@@ -66,6 +67,11 @@ public class NodeMasterRPCImpl extends HessianServlet implements NodeMasterRPC {
 	public DFile downloadMetadata() {
 		return myNode.getVFS().getMetadata();
 	}
+	
+	public void updateMetadata(Block from, String path) {
+		myNode.getVFS().updateMetadata(from, path);
+	}
+		
 	@Override
 	public Errno mkdir(DFileSpec dir, Permission perm) {
 		return myNode.getVFS().mkdir(dir, perm);
