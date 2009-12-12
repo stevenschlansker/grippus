@@ -3,7 +3,6 @@ package edu.berkeley.grippus.storage;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 
 public class Block implements Serializable {
 	private static final long serialVersionUID = 1L;

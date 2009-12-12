@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import edu.berkeley.grippus.fs.DFile;
+import edu.berkeley.grippus.fs.DFileSpec;
 import edu.berkeley.grippus.fs.PersistentDFile;
 import edu.berkeley.grippus.fs.VFS;
 import edu.berkeley.grippus.fs.perm.EveryonePermissions;
@@ -14,7 +15,7 @@ import edu.berkeley.grippus.storage.Storage;
 public abstract class FileMapper {
 	protected final int CHUNK_SIZE = getChunkSize();
 	public final String execute(VFS vfs, Storage store, DFile in,
-			DFile outDir) {
+			DFileSpec outDir) {
 		ByteBuffer buf = ByteBuffer.allocate(CHUNK_SIZE);
 		InputStream ins = in.open(store, null); //TODO: This is so dangerous....
 		BlockList bl = new BlockList();
@@ -40,7 +41,7 @@ public abstract class FileMapper {
 				return "Local failure: " + e;
 			}
 		} while (off == CHUNK_SIZE);
-		outDir.addEntry(new PersistentDFile(bl, in.getName() + ".mapped",
+		vfs.addEntry(outDir, new PersistentDFile(bl, in.getName() + ".mapped",
 				new EveryonePermissions()));
 		return "Success";
 	}

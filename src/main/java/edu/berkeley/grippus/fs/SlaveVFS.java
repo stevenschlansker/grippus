@@ -46,7 +46,8 @@ public class SlaveVFS extends VFS {
 	}
 
 	@Override
-	public synchronized Errno addEntry(DFile parent, DFile child) {
+	public synchronized Errno addEntry(DFileSpec parent, DFile child) {
+		LOG.info("Sending request to add entry " + child + " to " + parent);
 		return master.addEntry(parent, child);
 	}
 

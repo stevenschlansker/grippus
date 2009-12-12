@@ -53,7 +53,7 @@ public abstract class VFS {
 			DFile df = resolve(dest);
 			if (df.exists())
 				return Errno.SUCCESS;
-			return addEntry(df.getParent(),
+			return addEntry(dest.upOneLevel(),
 					new PersistentDFile(storage.chunkify(src), src.getName(),
 							new EveryonePermissions()));
 		} catch (FileNotFoundException e) {
@@ -63,8 +63,8 @@ public abstract class VFS {
 		}
 	}
 
-	public Errno addEntry(DFile parent, DFile child) {
-		return parent.addEntry(child);
+	public Errno addEntry(DFileSpec parent, DFile child) {
+		return resolve(parent).addEntry(child);
 	}
 
 	public void sync() { /* master VFS is always in sync */

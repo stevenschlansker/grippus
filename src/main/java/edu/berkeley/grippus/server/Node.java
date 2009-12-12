@@ -622,9 +622,9 @@ public class Node {
 			return "Internal error: " + e.toString();
 		}
 		getVFS().sync();
-		return fm.execute(getVFS(), getStorage(), file, getVFS().resolve(dest));
+		return fm.execute(getVFS(), getStorage(), file, dest);
 	}
-	
+
 	public Errno propogateData(Block b, String path) {
 		try {
 			if (!this.isMaster()) {
