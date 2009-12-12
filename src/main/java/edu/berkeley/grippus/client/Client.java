@@ -123,7 +123,7 @@ public class Client {
 		return node.mkdir(cmd, cwd.append(dirname));
 	}
 
-	public Errno connectToNetwork(String cmd, String masterURL) {
+	public Errno joinCluster(String cmd, String masterURL) {
 		return node.joinCluster(cmd, masterURL, "k");
 	}
 
