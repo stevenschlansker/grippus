@@ -565,7 +565,7 @@ public class Node {
 		final DFileSpec outSpec = new DFileSpec("/mapout");
 		final DFile dest = getVFS().resolve(outSpec);
 		if (!dest.exists())
-			dest.mkdir(new EveryonePermissions());
+			getVFS().mkdir(outSpec, new EveryonePermissions());
 		List<DFile> list = new ArrayList<DFile>();
 		StringBuilder result = new StringBuilder();
 		traverse(f, list);
