@@ -51,12 +51,17 @@ public class SlaveVFS extends VFS {
 	}
 
 	@Override
-	public synchronized void sync() {
+	protected synchronized void sync() {
 		super.sync();
 		try {
 			root = master.downloadMetadata();
 		} catch (HessianRuntimeException e) {
 			LOG.error("Could not download metadata!", e);
 		}
+	}
+
+	@Override
+	protected Logger getLogger() {
+		return Logger.getLogger(SlaveVFS.class);
 	}
 }

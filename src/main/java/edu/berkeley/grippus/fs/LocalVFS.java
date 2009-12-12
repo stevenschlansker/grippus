@@ -1,12 +1,14 @@
 package edu.berkeley.grippus.fs;
 
 
+import org.apache.log4j.Logger;
+
 import edu.berkeley.grippus.Errno;
 import edu.berkeley.grippus.fs.perm.Permission;
 import edu.berkeley.grippus.server.DPassthroughMount;
 
 public class LocalVFS extends VFS {
-	private DFile root = new RootDFile();
+	private final DFile root = new RootDFile();
 
 	private synchronized DFile find(DFileSpec path) {
 		return root.find(path);
@@ -29,5 +31,10 @@ public class LocalVFS extends VFS {
 	@Override
 	protected synchronized DFile getRoot() {
 		return root;
+	}
+
+	@Override
+	protected Logger getLogger() {
+		return Logger.getLogger(LocalVFS.class);
 	}
 }

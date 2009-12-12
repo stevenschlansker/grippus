@@ -457,7 +457,15 @@ public class Node {
 	}
 
 	public Errno share(DFileSpec dfs, String realPath) {
-		return vfs.copyRecursive(realPath, dfs, getStorage());
+		try {
+			return vfs.copyRecursive(realPath, dfs, getStorage());
+		} catch (IllegalStateException e) {
+			logger.error("Could not share", e);
+			Errno result = Errno.valueOf(e.getMessage());
+			if (result == null)
+				return Errno.ERROR_ILLEGAL_ARGUMENT;
+			return result;
+		}
 	}
 
 	public Permission defaultPermissions() {
@@ -621,7 +629,6 @@ public class Node {
 		} catch (IllegalAccessException e) {
 			return "Internal error: " + e.toString();
 		}
-		getVFS().sync();
 		return fm.execute(getVFS(), getStorage(), file, dest);
 	}
 
