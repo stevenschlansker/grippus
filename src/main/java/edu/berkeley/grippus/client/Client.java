@@ -133,6 +133,13 @@ public class Client {
 		return result.car();
 	}
 
+	public Errno extractToLocal(String cmd, String path, String realPath) {
+		System.out.println("doing it right");
+		Pair<Errno, String> result = node.extractToLocal(cmd, cwd.append(path), realPath);
+		System.out.println(result.cdr());
+		return result.car();
+	}
+	
 	public Errno digest(String cmd, String algo, String path) {
 		Pair<Errno, String> result = node.digest(cmd, algo, cwd.append(path));
 		System.out.println(result.cdr());
