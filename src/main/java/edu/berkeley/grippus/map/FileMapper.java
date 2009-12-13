@@ -14,7 +14,8 @@ import edu.berkeley.grippus.storage.Storage;
 
 public abstract class FileMapper {
 	protected final int CHUNK_SIZE = getChunkSize();
-	public final String execute(VFS vfs, Storage store, DFile in,
+
+	public String execute(VFS vfs, Storage store, DFile in,
 			DFileSpec outDir) {
 		ByteBuffer buf = ByteBuffer.allocate(CHUNK_SIZE);
 		InputStream ins = in.open(store, null); //TODO: This is so dangerous....

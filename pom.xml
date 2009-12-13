@@ -81,5 +81,20 @@
     	<artifactId>commons-codec</artifactId>
     	<version>1.4</version>
     </dependency>
+    <dependency>
+    	<groupId>onion</groupId>
+    	<artifactId>common</artifactId>
+    	<version>1.0.3</version>
+    </dependency>
+    <dependency>
+    	<groupId>onion</groupId>
+    	<artifactId>fec</artifactId>
+    	<version>1.0.3</version>
+    </dependency>
+    <dependency>
+    	<groupId>onion</groupId>
+    	<artifactId>concurrent-jaxed</artifactId>
+    	<version>1.0.3</version>
+    </dependency>
   </dependencies>
 </project>
