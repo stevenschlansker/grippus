@@ -1,6 +1,7 @@
 package edu.berkeley.grippus.server;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -508,6 +509,34 @@ public class Node {
 		}
 	}
 
+	/** Writes the file to local disk at the location realPath.
+	 */
+	public Pair<Errno, String> extractToLocal(DFileSpec path, String realPath) {
+		DFile f = getVFS().resolve(path);
+		if (f == null)
+			return new Pair<Errno, String>(Errno.ERROR_FILE_NOT_FOUND, "");
+		FileOutputStream fOut = null;
+		try {
+			fOut = new FileOutputStream( new File(realPath));
+			StreamUtils.copy(f.open(getStorage(), path), fOut);
+			return new Pair<Errno, String>(Errno.SUCCESS, new String(""));
+		} catch (UnsupportedOperationException e) {
+			return new Pair<Errno, String>(Errno.ERROR_NOT_SUPPORTED, "");
+		} catch (IOException e) {
+			return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
+		} finally{
+			try{
+				if(fOut != null){
+					fOut.flush();
+					fOut.close();
+				}
+			} catch (IOException e){
+				return new Pair<Errno, String>(Errno.ERROR_IO, e.toString());
+			}
+		} 
+	}
+	
+	
 	private void setMyNodeURL(String myNodeURL) {
 		this.myNodeURL = myNodeURL;
 	}
